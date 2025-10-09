@@ -1,0 +1,9 @@
+-r requirements.txt
+
+django-stubs==5.2.7
+djangorestframework-stubs==3.16.4
+ty==0.0.1a21
+# ruff==0.14.0
+# pytest==8.4.1
+# pytest-django==4.11.1
+# testcontainers[postgres]==4.12.0
