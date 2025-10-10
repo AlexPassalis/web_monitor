@@ -1,0 +1,26 @@
+networks:
+  my_network:
+    external: true
+
+volumes:
+  postgres:
+    external: true
+
+services:
+  postgres:
+
+  redis:
+
+  backend:
+    container_name: backend
+    build:
+      context: ./services/backend
+      dockerfile: Dockerfile
+    tty: true
+    restart: always
+    volumes:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy

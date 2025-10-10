@@ -1,0 +1,10 @@
+[tool.ruff]
+line-length = 100
+target-version = "py313" # Python version 3.13
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+
+[tool.ruff.lint]
+select = ["COM812"] # add missing trailing commas
