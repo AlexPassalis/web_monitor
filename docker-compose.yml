@@ -5,11 +5,13 @@ networks:
 volumes:
   postgres:
     external: true
+  redis:
+    external: true
 
 services:
-  postgres:
+  db:
 
-  redis:
+  cache:
 
   backend:
     container_name: backend
@@ -20,7 +22,7 @@ services:
     restart: always
     volumes:
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
-      redis:
+      cache:
         condition: service_healthy

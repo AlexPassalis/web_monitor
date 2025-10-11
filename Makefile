@@ -12,6 +12,8 @@ default: run # Running 'make' without any additional arguments.
 
 create_docker_network:
 
+comp
+
 install:
 	pip install -r requirements-dev.txt
 
