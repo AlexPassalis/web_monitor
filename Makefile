@@ -6,16 +6,17 @@
 SHELL = /usr/bin/env bash -e -o pipefail
 MAKEFLAGS += --no-print-directory
 LATESTDUMP = "latest.dump"
-.PHONY: install run
+
+.PHONY: default create_docker_network install run 
 
 default: run # Running 'make' without any additional arguments.
 
 create_docker_network:
-
-comp
+	@bin/create_docker_network.sh
 
 install:
 	pip install -r requirements-dev.txt
 
 run:
+	${MAKE} create_docker_network
 	@exec uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload

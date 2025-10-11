@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-docker_network=
-
-docker network ls | grep -q 
