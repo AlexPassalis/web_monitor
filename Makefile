@@ -7,7 +7,7 @@ SHELL = /usr/bin/env bash -e -o pipefail
 MAKEFLAGS += --no-print-directory
 LATESTDUMP = "latest.dump"
 
-.PHONY: default create_docker_network install run 
+.PHONY: create_docker_network install run 
 
 default: run # Running 'make' without any additional arguments.
 
