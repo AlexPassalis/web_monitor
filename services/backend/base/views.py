@@ -1,5 +1,5 @@
 from typing import TypedDict, NotRequired
-from base.utils import min_passed
+from utils.min_passed import min_passed
 from django.shortcuts import render
 
 

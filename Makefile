@@ -9,14 +9,18 @@ LATESTDUMP = "latest.dump"
 
 .PHONY: create_docker_network install run 
 
-default: run # Running 'make' without any additional arguments.
+default: run
 
 create_docker_network:
 	@bin/create_docker_network.sh
+
+create_postgres_volume:
+	@bin/create_postgres_volume.sh
 
 install:
 	pip install -r requirements-dev.txt
 
 run:
-	${MAKE} create_docker_network
-	@exec uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload
+	@${MAKE} create_docker_network
+	@${MAKE} create_postgres_volume
+	docker compose -f docker-compose.yml up --build -d
