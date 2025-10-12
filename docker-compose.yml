@@ -3,7 +3,7 @@ networks:
     external: true
 
 volumes:
-  volume_postgres:
+  volume_pjoject_postgres:
     external: true
 # volume_redis:
 # external: true
@@ -21,7 +21,7 @@ services:
       POSTGRES_USER: project_postgres_user
       POSTGRES_PASSWORD: xI5-9wToNG9sHRNW-3iz
     volumes:
-      - volume_postgres:/var/lib/postgresql/data
+      - volume_pjoject_postgres:/var/lib/postgresql/data
     networks:
       - network_project
     ports:
@@ -49,6 +49,7 @@ services:
     build:
       context: ./services/backend
       dockerfile: Dockerfile
+      target: dev
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
