@@ -37,6 +37,8 @@ COPY . .
 ENV ENV=development
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV ALLOWED_HOSTS=localhost,127.0.0.1,${HOST}
+ENV CORS_ALLOWED_ORIGINS=http://localhost:${PORT}
 
 CMD ["sh", "-c", "uvicorn config.asgi:application --host ${HOST} --port ${PORT} --reload"]
 

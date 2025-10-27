@@ -11,7 +11,16 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-from config.__init__ import ENV, DB_NAME, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD
+from config import (
+    ENV,
+    DB_NAME,
+    DB_HOST,
+    DB_PORT,
+    DB_USER,
+    DB_PASSWORD,
+    ALLOWED_HOSTS,
+    CORS_ALLOWED_ORIGINS,
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,9 +35,9 @@ SECRET_KEY = 'django-insecure-q=d=fn=($+skv0xg^hd2g#w7*y)-8jdd%k8uwiahfumg4z9i4x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if ENV != 'production' else False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ALLOWED_HOSTS
 
-CORS_ALLOWED_ORIGINS = []
+CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # Application definition
 

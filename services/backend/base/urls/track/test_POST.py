@@ -1,7 +1,7 @@
 from ninja.testing import TestClient
-from . import router
+from . import track_router
 
-client = TestClient(router)
+client = TestClient(track_router)
 
 
 def test_track_happy_path():

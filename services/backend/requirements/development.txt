@@ -2,8 +2,8 @@
 
 django-stubs==5.2.7
 ruff==0.14.0
+mypy==1.18.2
 pytest==8.4.2
 pytest-django==4.11.1
-# ty==0.0.1a21
 
 # testcontainers[postgres]==4.12.0

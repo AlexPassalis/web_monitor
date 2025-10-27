@@ -15,3 +15,15 @@ python_files=["test_*.py"]
 filterwarnings = [
     "ignore::pydantic.warnings.PydanticDeprecatedSince20",
 ]
+
+[tool.mypy]
+python_version = "3.13"
+plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
+explicit_package_bases = true
+files = ["."]
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
+
+[tool.pyright]
+include = ["django-stubs", "django_stubs_ext"]

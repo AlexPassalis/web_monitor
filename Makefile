@@ -14,16 +14,6 @@ default: start
 
 init:
 
-create_docker_network:
-	@bin/create_docker_network.sh
-
-create_postgres_volume:
-	@bin/create_postgres_volume.sh
-
-# pip_install:
-# @${MAKE} dockerize_backend.sh
-# pip install -r requirements-dev.txt
-
 start:
 	@${MAKE} create_docker_network
 	@${MAKE} create_postgres_volume
@@ -32,6 +22,22 @@ start:
 stop:
 	docker compose -p ${COMPOSE_NAME} down
 
+check_type:
+	@${MAKE} check_type_backend
+
+test:
+	@${MAKE} test_backend
+
+check_type_backend:
+	@echo "*** Checking types inside ${BACKEND_SERVICE_NAME} service."
+	@bin/dockerize_backend.sh mypy .
+
 test_backend:
 	@echo "*** Running tests inside ${BACKEND_SERVICE_NAME} service."
 	@bin/dockerize_backend.sh python -m pytest
+
+create_docker_network:
+	@bin/create_docker_network.sh
+
+create_postgres_volume:
+	@bin/create_postgres_volume.sh

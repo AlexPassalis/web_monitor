@@ -1,7 +1,7 @@
 from ninja import Router
 
-router = Router()
+track_router = Router()
 
 from . import POST  # noqa: E402, F401
 
-__all__ = ['router']
+__all__ = ['track_router']
