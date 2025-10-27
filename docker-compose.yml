@@ -19,7 +19,8 @@ services:
       POSTGRES_PORT: 5432
       POSTGRES_DB: project_postgres_db
       POSTGRES_USER: project_postgres_user
-      POSTGRES_PASSWORD: xI5-9wToNG9sHRNW-3iz
+      POSTGRES_PASSWORD: project_postgres_password
+    restart: always
     volumes:
       - volume_pjoject_postgres:/var/lib/postgresql/data
     networks:
@@ -55,7 +56,7 @@ services:
       POSTGRES_PORT: 5432
       POSTGRES_DB: project_postgres_db
       POSTGRES_USER: project_postgres_user
-      POSTGRES_PASSWORD: xI5-9wToNG9sHRNW-3iz
+      POSTGRES_PASSWORD: project_postgres_password
     tty: true
     restart: always
     volumes:

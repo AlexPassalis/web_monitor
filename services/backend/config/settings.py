@@ -40,9 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Django Rest Framework apps
-    'rest_framework',
-    'rest_framework.authtoken',
+    # Django Ninja apps
+    # Third-party apps
     'corsheaders',
     # My apps
     'base.apps.BaseConfig',
@@ -138,8 +137,5 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Django Rest Framework TODO
-REST_FRAMEWORK = {}
 
 LOG_LEVEL = 'INFO'  # TODO change debending on environment
