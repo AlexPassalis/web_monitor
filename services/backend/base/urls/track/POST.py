@@ -1,7 +1,7 @@
 from ninja import Schema
 from pydantic import HttpUrl
 
-from . import track_router
+from . import router_track
 from django.http import HttpRequest
 
 
@@ -11,17 +11,20 @@ class TrackRequest(Schema):
 
 class TrackResponse(Schema):
     message: str
-    url: str
+    url: HttpUrl
 
 
 class ValidationErrorResponse(Schema):
     detail: list[dict]
 
 
-@track_router.post(
+@router_track.post(
     '/track',
     url_name='track',
     response={201: TrackResponse, 422: ValidationErrorResponse},
 )
-def track(request: HttpRequest, data: TrackRequest) -> tuple[int, dict[str, str]]:
-    return 201, {'message': 'URL tracked successfully', 'url': str(data.url)}
+def track(
+    request: HttpRequest,
+    data: TrackRequest,
+) -> tuple[int, TrackResponse | ValidationErrorResponse]:
+    return 201, TrackResponse(message='URL tracked successfully', url=data.url)

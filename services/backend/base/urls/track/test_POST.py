@@ -3,10 +3,14 @@ from . import track_router
 
 client = TestClient(track_router)
 
+path = '/track'
+method = 'POST'
+
 
 def test_track_happy_path():
-    response = client.post('/track', json={'url': 'http://example.com'})
+    json_body = {'url': 'http://example.com'}
 
+    response = client.request(method=method, path=path, json=json_body)
     assert response.status_code == 201
     assert response.json() == {
         'message': 'URL tracked successfully',
@@ -15,8 +19,9 @@ def test_track_happy_path():
 
 
 def test_track_invalid_url():
-    response = client.post('/track', json={'url': 'not-a-valid-url'})
+    json_body = {'url': 'invalid-url'}
 
+    response = client.request(method=method, path=path, json=json_body)
     assert response.status_code == 422
     assert response.json() == {
         'detail': [

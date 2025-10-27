@@ -24,6 +24,3 @@ files = ["."]
 
 [tool.django-stubs]
 django_settings_module = "config.settings"
-
-[tool.pyright]
-include = ["django-stubs", "django_stubs_ext"]
