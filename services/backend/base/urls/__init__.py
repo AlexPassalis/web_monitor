@@ -12,7 +12,7 @@ api: NinjaAPI = NinjaAPI(
 )
 
 
-@api.get('/favicon.ico', url_name='favicon')
+@api.get('/favicon.ico', url_name='favicon', include_in_schema=False)
 def favicon(request: HttpRequest) -> HttpResponse:
     return redirect('/static/favicon.svg', permanent=True)
 
