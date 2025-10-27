@@ -1,6 +1,21 @@
+from ninja import Schema
+from pydantic import HttpUrl
+
 from . import router
 from django.http import HttpRequest
-from .schemas import TrackRequest, TrackResponse, ValidationErrorResponse
+
+
+class TrackRequest(Schema):
+    url: HttpUrl
+
+
+class TrackResponse(Schema):
+    message: str
+    url: str
+
+
+class ValidationErrorResponse(Schema):
+    detail: list[dict]
 
 
 @router.post(

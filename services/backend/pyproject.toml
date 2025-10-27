@@ -8,3 +8,10 @@ indent-style = "space"
 
 [tool.ruff.lint]
 select = ["COM812"] # add missing trailing commas
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE="config.settings"
+python_files=["test_*.py"]
+filterwarnings = [
+    "ignore::pydantic.warnings.PydanticDeprecatedSince20",
+]

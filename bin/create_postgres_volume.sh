@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-docker_volume="volume_pjoject_postgres"
+POSTGRES_DOCKER_VOLUME="volume_pjoject_postgres"
 
-if docker volume inspect "$docker_volume" >/dev/null 2>&1; then
-    echo "Docker volume \"$docker_volume\" already exists."
+if docker volume inspect "$POSTGRES_DOCKER_VOLUME" >/dev/null 2>&1; then
+    echo "Docker volume \"$POSTGRES_DOCKER_VOLUME\" already exists."
 else
-    docker volume create "$docker_volume" >/dev/null
-    echo "Docker volume \"$docker_volume\" created."
+    docker volume create "$POSTGRES_DOCKER_VOLUME" >/dev/null
+    echo "Docker volume \"$POSTGRES_DOCKER_VOLUME\" created."
 fi

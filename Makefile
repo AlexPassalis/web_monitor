@@ -6,10 +6,11 @@ MAKEFLAGS += --no-print-directory
 LATESTDUMP = latest.dump
 
 COMPOSE_NAME = project
+BACKEND_SERVICE_NAME = backend
 
-.PHONY: create_docker_network install run 
+.PHONY: create_docker_network install start 
 
-default: run
+default: start
 
 init:
 
@@ -23,10 +24,14 @@ create_postgres_volume:
 # @${MAKE} dockerize_backend.sh
 # pip install -r requirements-dev.txt
 
-run:
+start:
 	@${MAKE} create_docker_network
 	@${MAKE} create_postgres_volume
 	docker compose -f docker-compose.yml up --build -d
 
 stop:
 	docker compose -p ${COMPOSE_NAME} down
+
+test_backend:
+	@echo "*** Running tests inside ${BACKEND_SERVICE_NAME} service."
+	@bin/dockerize_backend.sh python -m pytest
