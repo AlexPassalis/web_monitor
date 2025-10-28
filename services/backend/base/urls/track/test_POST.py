@@ -1,7 +1,7 @@
 from ninja.testing import TestClient
-from . import track_router
+from . import router_track
 
-client = TestClient(track_router)
+client = TestClient(router_track)
 
 path = '/track'
 method = 'POST'

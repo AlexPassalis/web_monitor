@@ -3,7 +3,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.urls import URLResolver, path
 
-from .track import track_router
+from .track import router_track
 
 api: NinjaAPI = NinjaAPI(
     title='Backend Service API',
@@ -22,7 +22,7 @@ def home(request: HttpRequest) -> dict[str, str]:
     return {'message': 'Welcome to the Backend Service!'}
 
 
-api.add_router('', track_router)
+api.add_router('', router_track)
 
 urlpatterns: list[URLResolver] = [
     path('', api.urls),

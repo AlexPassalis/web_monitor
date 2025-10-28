@@ -8,14 +8,10 @@ EXPOSE ${PORT}
 FROM base AS deps
 WORKDIR /app
 USER root
-
 # Upgrade pip tooling once
 RUN python -m pip install --upgrade --no-cache-dir pip setuptools wheel
-
 # Add system build deps for psycopg[c]
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      build-essential libpq-dev pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential libpq-dev pkg-config
 
 COPY requirements/ requirements/
 
@@ -23,11 +19,14 @@ COPY requirements/ requirements/
 
 FROM deps AS deps-dev
 RUN python3 -m pip install -r requirements/development.txt
-
+# Install Playwright browsers
+RUN playwright install --with-deps chromium
 
 
 FROM deps AS deps-prod
 RUN python3 -m pip install -r requirements/production.txt
+# Install Playwright browsers
+RUN playwright install --with-deps chromium
 
 
 
