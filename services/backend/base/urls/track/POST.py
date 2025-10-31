@@ -1,4 +1,3 @@
-import json
 from ninja import Schema
 from pydantic import HttpUrl
 
@@ -13,7 +12,7 @@ class TrackRequest(Schema):
 
 class TrackResponse(Schema):
     message: str
-    url: str
+    url: HttpUrl
 
 
 class ValidationErrorResponse(Schema):
@@ -28,13 +27,15 @@ def track(
     request: HttpRequest,
     data: TrackRequest,
 ) -> tuple[int, TrackResponse | ValidationErrorResponse]:
+    url = str(data.url)
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
-        page.goto(str(data.url))
-        print(
-            page.content(),
-        )
+        page.goto(url)
+        html_content = page.content()
+        print(html_content)
+
         browser.close()
 
-    return 201, TrackResponse(message='URL tracked successfully', url=str(data.url))
+    return 201, TrackResponse(message='URL tracked successfully', url=url)

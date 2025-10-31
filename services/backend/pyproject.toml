@@ -1,13 +1,18 @@
 [tool.ruff]
+target-version = "py313"
 line-length = 100
-target-version = "py313" # Python version 3.13
 
 [tool.ruff.format]
 quote-style = "single"
 indent-style = "space"
 
 [tool.ruff.lint]
-select = ["COM812"] # add missing trailing commas
+select = [
+    "F",
+    "E",
+    "W",
+    "COM812",
+]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE="config.settings"
@@ -24,3 +29,9 @@ files = ["."]
 
 [tool.django-stubs]
 django_settings_module = "config.settings"
+
+[tool.pyright]
+pythonVersion = "3.13"
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+
