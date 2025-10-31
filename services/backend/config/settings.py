@@ -12,14 +12,18 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from config import (
-    ENV,
+    SECRET_KEY,
+    DEBUG,
+    LOG_LEVEL,
+    ALLOWED_HOSTS,
+    CORS_ALLOWED_ORIGINS,
     DB_NAME,
     DB_HOST,
     DB_PORT,
     DB_USER,
     DB_PASSWORD,
-    ALLOWED_HOSTS,
-    CORS_ALLOWED_ORIGINS,
+    CELERY_BROKER_URL,
+    CELERY_RESULT_BACKEND,
 )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,10 +34,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-q=d=fn=($+skv0xg^hd2g#w7*y)-8jdd%k8uwiahfumg4z9i4x'
+SECRET_KEY = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if ENV != 'production' else False
+DEBUG = DEBUG
 
 ALLOWED_HOSTS = ALLOWED_HOSTS
 
@@ -147,4 +151,12 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOG_LEVEL = 'INFO'  # TODO change debending on environment
+LOG_LEVEL = LOG_LEVEL
+
+# Celery Configuration
+CELERY_BROKER_URL = CELERY_BROKER_URL
+CELERY_RESULT_BACKEND = CELERY_RESULT_BACKEND
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE

@@ -74,6 +74,8 @@ services:
       POSTGRES_DB: project_postgres_db
       POSTGRES_USER: project_postgres_user
       POSTGRES_PASSWORD: project_postgres_password
+      CELERY_BROKER_URL: redis://cache:6379/0 # Celery message broker (task queue) - using Valkey database 0
+      CELERY_RESULT_BACKEND: redis://cache:6379/1 # Celery result storage (task results) - using Valkey database 1
     tty: true
     restart: always
     volumes:
@@ -82,3 +84,55 @@ services:
       - network_project
     ports:
       - "8000:8000"
+
+  celery_worker:
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    container_name: celery_worker
+    build:
+      context: ./services/backend
+      dockerfile: Dockerfile
+      target: dev
+    command: celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: project_postgres_db
+      POSTGRES_USER: project_postgres_user
+      POSTGRES_PASSWORD: project_postgres_password
+      CELERY_BROKER_URL: redis://cache:6379/0 # Celery message broker (task queue) - using Valkey database 0
+      CELERY_RESULT_BACKEND: redis://cache:6379/1 # Celery result storage (task results) - using Valkey database 1
+    restart: always
+    volumes:
+      - ./services/backend:/app
+    networks:
+      - network_project
+
+  celery_beat:
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    container_name: celery_beat
+    build:
+      context: ./services/backend
+      dockerfile: Dockerfile
+      target: dev
+    command: celery -A config beat --loglevel=info
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: project_postgres_db
+      POSTGRES_USER: project_postgres_user
+      POSTGRES_PASSWORD: project_postgres_password
+      CELERY_BROKER_URL: redis://cache:6379/0 # Celery message broker (task queue) - using Valkey database 0
+      CELERY_RESULT_BACKEND: redis://cache:6379/1 # Celery result storage (task results) - using Valkey database 1
+    restart: always
+    volumes:
+      - ./services/backend:/app
+    networks:
+      - network_project
