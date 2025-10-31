@@ -9,20 +9,17 @@ class TrackedWebsiteAdmin(admin.ModelAdmin):
     filter_horizontal = ('minute', 'hour', 'day')
     fields = ('url', 'minute', 'hour', 'day')
 
+    @admin.display(description='minute Users')
     def minute_count(self, obj):
         return obj.minute.count()
 
-    minute_count.short_description = 'minute Users'
-
+    @admin.display(description='hour Users')
     def hour_count(self, obj):
         return obj.hour.count()
 
-    hour_count.short_description = 'hour Users'
-
+    @admin.display(description='day Users')
     def day_count(self, obj):
         return obj.day.count()
-
-    day_count.short_description = 'day Users'
 
 
 @admin.register(WebsiteSnapshot)

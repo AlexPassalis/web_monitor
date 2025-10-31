@@ -32,7 +32,7 @@ class ValidationErrorResponse(Schema):
 def track(
     request: HttpRequest,
     data: TrackRequest,
-) -> tuple[422, ValidationErrorResponse] | tuple[201, TrackResponse]:
+) -> tuple[Literal[422], ValidationErrorResponse] | tuple[Literal[201], TrackResponse]:
     url = str(data.url)
 
     tracked_website, created = TrackedWebsite.objects.get_or_create(
@@ -43,10 +43,11 @@ def track(
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             html_content = get_html_content(browser, url)
-            tracked_website.snapshot.create(
-                html_content=html_content,
-            )
             browser.close()
+
+        tracked_website.snapshot.create(
+            html_content=html_content,
+        )
 
     return 201, TrackResponse(
         message='URL tracked successfully',
