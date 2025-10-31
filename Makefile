@@ -35,4 +35,4 @@ check_type_backend:
 
 test_backend:
 	@echo "*** Running tests inside ${BACKEND_SERVICE_NAME} service."
-	@bin/dockerize_backend.sh python -m pytest
+	@bin/dockerize_backend.sh env ENV=testing python -m pytest

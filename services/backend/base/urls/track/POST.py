@@ -12,7 +12,7 @@ class TrackRequest(Schema):
 
 class TrackResponse(Schema):
     message: str
-    url: HttpUrl
+    url: str
 
 
 class ValidationErrorResponse(Schema):

@@ -30,18 +30,10 @@ RUN playwright install --with-deps chromium
 
 
 FROM deps-dev AS dev
-# Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-RUN mkdir -p /app && chown -R appuser:appuser /app
-
-COPY --chown=appuser:appuser . .
-
-USER appuser
 
 ENV ENV=development
 ENV ALLOWED_HOSTS=localhost,127.0.0.1,${HOST}
 ENV CORS_ALLOWED_ORIGINS=http://localhost:${PORT}
-
 # Default init command, is overriden for the worker and beat service in the docker-compose file.
 CMD ["sh", "-c", "uvicorn config.asgi:application --host ${HOST} --port ${PORT} --reload"]
 
@@ -51,9 +43,7 @@ FROM deps-prod AS prod
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 RUN mkdir -p /app && chown -R appuser:appuser /app
-
 COPY --chown=appuser:appuser . .
-
 USER appuser
 
 ENV ENV=production
