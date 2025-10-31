@@ -1,18 +1,21 @@
 from ninja import Schema
 from pydantic import HttpUrl
+from typing import Literal
 
 from . import router_track
 from django.http import HttpRequest
+from base.models import TrackedWebsite
 from playwright.sync_api import sync_playwright
+from base.utils import get_html_content
 
 
 class TrackRequest(Schema):
     url: HttpUrl
+    interval: Literal['minute', 'hour', 'day']
 
 
 class TrackResponse(Schema):
-    message: str
-    url: str
+    message: Literal['URL tracked successfully']
 
 
 class ValidationErrorResponse(Schema):
@@ -21,21 +24,30 @@ class ValidationErrorResponse(Schema):
 
 @router_track.post(
     path='/track',
-    response={201: TrackResponse, 422: ValidationErrorResponse},
+    response={
+        422: ValidationErrorResponse,
+        201: TrackResponse,
+    },
 )
 def track(
     request: HttpRequest,
     data: TrackRequest,
-) -> tuple[int, TrackResponse | ValidationErrorResponse]:
+) -> tuple[422, ValidationErrorResponse] | tuple[201, TrackResponse]:
     url = str(data.url)
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(url)
-        html_content = page.content()
-        print(html_content)
+    tracked_website, created = TrackedWebsite.objects.get_or_create(
+        url=url,
+    )  # TODO add the User in min, hour or day.
 
-        browser.close()
+    if created:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            html_content = get_html_content(browser, url)
+            tracked_website.snapshot.create(
+                html_content=html_content,
+            )
+            browser.close()
 
-    return 201, TrackResponse(message='URL tracked successfully', url=url)
+    return 201, TrackResponse(
+        message='URL tracked successfully',
+    )

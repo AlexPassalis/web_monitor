@@ -36,3 +36,12 @@ check_type_backend:
 test_backend:
 	@echo "*** Running tests inside ${BACKEND_SERVICE_NAME} service."
 	@bin/dockerize_backend.sh env ENV=testing python -m pytest
+
+migrate:
+	@echo "*** Creating and applying database migrations."
+	@bin/dockerize_backend.sh python manage.py makemigrations
+	@bin/dockerize_backend.sh python manage.py migrate
+
+create_superuser:
+	@echo "*** Creating Django superuser."
+	@bin/dockerize_backend.sh python manage.py createsuperuser

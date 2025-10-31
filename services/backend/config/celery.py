@@ -23,3 +23,7 @@ app.conf.beat_schedule = {
 }
 
 app.autodiscover_tasks()
+
+app.conf.worker_prefetch_multiplier = 1
+app.conf.worker_concurrency = 1
+app.conf.worker_pool = 'threads'

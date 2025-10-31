@@ -15,16 +15,32 @@ class TrackedWebsite(models.Model):
         help_text='The URL of the page being tracked.',
     )
 
-    users = models.ManyToManyField(
+    minute = models.ManyToManyField(
         User,
-        help_text='Users tracking this website.',
+        related_name='tracked_website_min',
+        blank=True,
+        help_text='Users tracking this website every 1 minute.',
+    )
+
+    hour = models.ManyToManyField(
+        User,
+        related_name='tracked_website_hour',
+        blank=True,
+        help_text='Users tracking this website every 1 hour.',
+    )
+
+    day = models.ManyToManyField(
+        User,
+        related_name='tracked_website_day',
+        blank=True,
+        help_text='Users tracking this website every 1 day.',
     )
 
     def get_latest(self):
         """
         Retrieves the most recent snapshot of the tracked website.
         """
-        return self.snapshots.first()
+        return self.snapshot.first()
 
 
 class WebsiteSnapshot(models.Model):
@@ -37,7 +53,7 @@ class WebsiteSnapshot(models.Model):
     tracked_website = models.ForeignKey(
         TrackedWebsite,
         on_delete=models.CASCADE,
-        related_name='snapshots',
+        related_name='snapshot',
         help_text='The tracked website this snapshot belongs to.',
     )
 
