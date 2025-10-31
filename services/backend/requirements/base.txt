@@ -6,3 +6,4 @@ psycopg[c]==3.2.10
 whitenoise==6.11.0
 playwright==1.55.0
 celery[redis]==5.5.3
+watchdog==6.0.0

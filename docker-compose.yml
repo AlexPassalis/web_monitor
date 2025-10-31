@@ -96,7 +96,7 @@ services:
       context: ./services/backend
       dockerfile: Dockerfile
       target: dev
-    command: celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info
+    command: watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
@@ -122,7 +122,7 @@ services:
       context: ./services/backend
       dockerfile: Dockerfile
       target: dev
-    command: celery -A config beat --loglevel=info
+    command: watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config beat --loglevel=info
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
