@@ -15,8 +15,9 @@ default: start
 init:
 
 start:
-	@${MAKE} create_docker_network
-	@${MAKE} create_postgres_volume
+	@bin/create_postgres_volume.sh
+	@bin/create_valkey_volume.sh
+	@bin/create_docker_network.sh
 	docker compose -f docker-compose.yml up --build -d
 
 stop:
@@ -35,9 +36,3 @@ check_type_backend:
 test_backend:
 	@echo "*** Running tests inside ${BACKEND_SERVICE_NAME} service."
 	@bin/dockerize_backend.sh python -m pytest
-
-create_docker_network:
-	@bin/create_docker_network.sh
-
-create_postgres_volume:
-	@bin/create_postgres_volume.sh

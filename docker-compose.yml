@@ -5,8 +5,8 @@ networks:
 volumes:
   volume_pjoject_postgres:
     external: true
-# volume_redis:
-# external: true
+  volume_project_valkey:
+    external: true
 
 services:
   db:
@@ -38,14 +38,31 @@ services:
       retries: 5
       start_period: 10s
 
-  #  cache:
+  cache:
+    container_name: cache
+    build:
+      context: ./services/cache
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - volume_project_valkey:/data
+    networks:
+      - network_project
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
   backend:
     depends_on:
       db:
         condition: service_healthy
-    # cache:
-    # condition: service_healthy
+      cache:
+        condition: service_healthy
     container_name: backend
     build:
       context: ./services/backend

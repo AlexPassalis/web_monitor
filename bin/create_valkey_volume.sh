@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VALKEY_DOCKER_VOLUME="volume_project_valkey"
+
+if docker volume inspect "$VALKEY_DOCKER_VOLUME" >/dev/null 2>&1; then
+    echo "Docker volume \"$VALKEY_DOCKER_VOLUME\" already exists."
+else
+    docker volume create "$VALKEY_DOCKER_VOLUME" >/dev/null
+    echo "Docker volume \"$VALKEY_DOCKER_VOLUME\" created."
+fi
