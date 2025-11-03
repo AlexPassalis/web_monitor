@@ -15,13 +15,21 @@ default: start
 init:
 
 start:
-	@bin/create_postgres_volume.sh
-	@bin/create_valkey_volume.sh
-	@bin/create_docker_network.sh
-	docker compose -f docker-compose.yml up --build -d
+	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -gt 0 ]; then \
+		echo "Docker compose \"${COMPOSE_NAME}\" is already running."; \
+	else \
+		bin/create_postgres_volume.sh; \
+		bin/create_valkey_volume.sh; \
+		bin/create_docker_network.sh; \
+		docker compose -f docker-compose.yml up --build -d; \
+	fi
 
 stop:
-	docker compose -p ${COMPOSE_NAME} down
+	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -eq 0 ]; then \
+		echo "Docker compose \"${COMPOSE_NAME}\" is not running."; \
+	else \
+		docker compose -p ${COMPOSE_NAME} down; \
+	fi
 
 check_type:
 	@${MAKE} check_type_backend
