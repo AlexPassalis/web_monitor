@@ -10,13 +10,14 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def create_initial_snapshot(tracked_website_id: int, url: str) -> None:
+def create_initial_snapshot(tracked_website_id: int, tracked_website_url: str) -> None:
     """Create the first snapshot for a newly tracked website."""
-    logger.info(f'Creating initial snapshot for {url}')
+
+    logger.info(f'Creating initial snapshot for {tracked_website_url}')
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        html_content = get_html_content(browser, url)
+        html_content = get_html_content(browser, tracked_website_url)
         browser.close()
 
     WebsiteSnapshot.objects.create(
@@ -24,4 +25,4 @@ def create_initial_snapshot(tracked_website_id: int, url: str) -> None:
         html_content=html_content,
     )
 
-    logger.info(f'Initial snapshot created for {url}')
+    logger.info(f'Initial snapshot created for {tracked_website_url}')
