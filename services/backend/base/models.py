@@ -36,16 +36,16 @@ class TrackedWebsite(models.Model):
         help_text='Users tracking this website every 1 day.',
     )
 
-    def get_latest_snapshot(self) -> 'WebsiteSnapshot | None':
+    def get_latest_screenshot(self) -> 'WebsiteScreenshot | None':
         """
-        Retrieves the most recent snapshot of the tracked website.
+        Retrieves the most recent screenshot of the tracked website.
         """
-        return self.snapshot.first()
+        return self.screenshot.first()
 
 
-class WebsiteSnapshot(models.Model):
+class WebsiteScreenshot(models.Model):
     """
-    Represents a snapshot of a tracked website at a specific point in time.
+    Represents a screenshot of a tracked website at a specific point in time.
     """
 
     id = models.AutoField(primary_key=True)
@@ -53,17 +53,18 @@ class WebsiteSnapshot(models.Model):
     tracked_website = models.ForeignKey(
         TrackedWebsite,
         on_delete=models.CASCADE,
-        related_name='snapshot',
-        help_text='The tracked website this snapshot belongs to.',
+        related_name='screenshot',
+        help_text='The tracked website this screenshot belongs to.',
     )
 
-    html_content = models.TextField(
-        help_text='The HTML content of the page at the time of the snapshot.',
+    perceptual_hash = models.CharField(
+        max_length=64,
+        help_text='The perceptual hash of the screenshot for comparison.',
     )
 
     created_at = models.DateTimeField(
         auto_now_add=True,
-        help_text='The timestamp when the snapshot was created.',
+        help_text='The timestamp when the screenshot was created.',
     )
 
     class Meta:

@@ -5,7 +5,7 @@ from typing import Literal
 from . import router_track
 from django.http import HttpRequest
 from base.models import TrackedWebsite
-from base.tasks import create_initial_snapshot
+from base.tasks import create_initial_screenshot
 
 
 class TrackRequest(Schema):
@@ -39,7 +39,10 @@ def track(
     )  # TODO add the User in min, hour or day.
 
     if created:
-        create_initial_snapshot.delay(tracked_website.id, url)
+        create_initial_screenshot.apply_async(
+            args=(tracked_website.id, url),
+            queue='high_priority',
+        )
 
     return 201, TrackResponse(
         message='URL tracked successfully',

@@ -38,11 +38,11 @@ test:
 	@${MAKE} test_backend
 
 check_type_backend:
-	@echo "*** Checking types inside ${BACKEND_SERVICE_NAME} service."
+	@echo "*** Checking types inside \"${BACKEND_SERVICE_NAME}\" service."
 	@bin/dockerize_backend.sh mypy .
 
 test_backend:
-	@echo "*** Running tests inside ${BACKEND_SERVICE_NAME} service."
+	@echo "*** Running tests inside \"${BACKEND_SERVICE_NAME}\" service."
 	@bin/dockerize_backend.sh env ENV=testing python -m pytest
 
 migrate:

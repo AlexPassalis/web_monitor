@@ -1,5 +1,5 @@
 from django.contrib import admin
-from base.models import TrackedWebsite, WebsiteSnapshot
+from base.models import TrackedWebsite, WebsiteScreenshot
 
 
 @admin.register(TrackedWebsite)
@@ -22,9 +22,9 @@ class TrackedWebsiteAdmin(admin.ModelAdmin):
         return obj.day.count()
 
 
-@admin.register(WebsiteSnapshot)
-class WebsiteSnapshotAdmin(admin.ModelAdmin):
-    list_display = ('tracked_website', 'created_at')
+@admin.register(WebsiteScreenshot)
+class WebsiteScreenshotAdmin(admin.ModelAdmin):
+    list_display = ('tracked_website', 'perceptual_hash', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('tracked_website__url',)
-    readonly_fields = ('created_at',)
+    readonly_fields = ('created_at', 'perceptual_hash')
