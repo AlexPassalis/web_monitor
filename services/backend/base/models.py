@@ -36,7 +36,7 @@ class TrackedWebsite(models.Model):
         help_text='Users tracking this website every 1 day.',
     )
 
-    def get_latest(self):
+    def get_latest_snapshot(self) -> 'WebsiteSnapshot | None':
         """
         Retrieves the most recent snapshot of the tracked website.
         """

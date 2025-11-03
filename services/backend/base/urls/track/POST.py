@@ -5,8 +5,7 @@ from typing import Literal
 from . import router_track
 from django.http import HttpRequest
 from base.models import TrackedWebsite
-from playwright.sync_api import sync_playwright
-from base.utils import get_html_content
+from base.tasks import create_initial_snapshot
 
 
 class TrackRequest(Schema):
@@ -40,14 +39,7 @@ def track(
     )  # TODO add the User in min, hour or day.
 
     if created:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            html_content = get_html_content(browser, url)
-            browser.close()
-
-        tracked_website.snapshot.create(
-            html_content=html_content,
-        )
+        create_initial_snapshot.delay(tracked_website.id, url)
 
     return 201, TrackResponse(
         message='URL tracked successfully',
