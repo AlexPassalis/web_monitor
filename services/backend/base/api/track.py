@@ -5,11 +5,9 @@ from django.http import HttpRequest
 from base.models import TrackedWebsite
 from base.tasks import create_initial_screenshot
 
-
 router = Router(tags=['Tracking'])
 
 
-# Schemas
 class TrackRequest(Schema):
     url: HttpUrl
     interval: Literal['minute', 'hour', 'day']
@@ -23,7 +21,6 @@ class ValidationErrorResponse(Schema):
     detail: list[dict]
 
 
-# Endpoints
 @router.post(
     '/track',
     response={
