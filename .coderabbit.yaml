@@ -1,0 +1,9 @@
+reviews:
+  auto_review:
+    enabled: true
+    drafts: true
+  profile: chill
+  high_level_summary: true
+
+chat:
+  auto_reply: true
