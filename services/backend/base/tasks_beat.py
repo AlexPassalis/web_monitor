@@ -1,14 +1,40 @@
 from imagehash import ImageHash
 
+import asyncio
 import logging
 
+from asgiref.sync import async_to_sync
 from celery import shared_task
 
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 from base.models import TrackedWebsite
-from base.utils import get_screenshot_perceptual_hash
+from base.utils import async_get_screenshot_perceptual_hash
 
 logger = logging.getLogger(__name__)
+
+
+async def async_run_every_minute(tracked_websites: list[TrackedWebsite]) -> None:
+    """Async implementation with concurrent screenshot processing."""
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+
+        tasks = []
+        for tracked_website in tracked_websites:
+            task = async_get_screenshot_perceptual_hash(browser, tracked_website.url)
+            tasks.append(task)
+
+        results = await asyncio.gather(*tasks)
+
+        await browser.close()
+
+    html_contents: dict[int, tuple[ImageHash, bytes]] = {}
+    for i, tracked_website in enumerate(tracked_websites):
+        html_contents[tracked_website.id] = results[i]
+
+    for tracked_website in tracked_websites:
+        perpetual_hash, screenshot_bytes = html_contents[tracked_website.id]
+        print(perpetual_hash)
 
 
 @shared_task
@@ -21,19 +47,7 @@ def run_every_minute() -> None:
         return
 
     tracked_websites = list(tracked_websites_qs)
-    html_contents: dict[int, tuple[ImageHash, bytes]] = {}
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        for tracked_website in tracked_websites:
-            html_contents[tracked_website.id] = get_screenshot_perceptual_hash(
-                browser,
-                tracked_website.url,
-            )
-        browser.close()
-
-    for tracked_website in tracked_websites:
-        perpetual_hash, screenshot_bytes = html_contents[tracked_website.id]
-        print(perpetual_hash)
+    async_to_sync(async_run_every_minute)(tracked_websites)
 
 
 #        latest_snapshot = tracked_website.get_latest_snapshot()

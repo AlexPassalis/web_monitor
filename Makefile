@@ -55,8 +55,8 @@ lint_backend:
 
 fix_backend:
 	@echo "*** Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service."
-	@bin/dockerize_backend.sh ruff check --fix .
 	@bin/dockerize_backend.sh ruff format .
+	@bin/dockerize_backend.sh ruff check --fix .
 
 check_type_backend:
 	@echo "*** Checking types inside \"${BACKEND_SERVICE_NAME}\" service."

@@ -4,7 +4,7 @@ from celery import shared_task
 from playwright.sync_api import sync_playwright
 
 from base.models import WebsiteScreenshot
-from base.utils import get_screenshot_perceptual_hash
+from base.utils import sync_get_screenshot_perceptual_hash
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ def create_initial_screenshot(tracked_website_id: int, tracked_website_url: str)
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        perceptual_hash, screenshot_bytes = get_screenshot_perceptual_hash(
+        perceptual_hash, screenshot_bytes = sync_get_screenshot_perceptual_hash(
             browser,
             tracked_website_url,
         )
