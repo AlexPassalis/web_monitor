@@ -1,3 +1,9 @@
+# Everywhere
+.DS_Store
+
+# Root
+
+# services/backend
 __pycache__/
 .mypy_cache/
 .pytest_cache/

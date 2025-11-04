@@ -30,8 +30,3 @@ DB_PASSWORD = validate_env('POSTGRES_PASSWORD')
 
 CELERY_BROKER_URL = validate_env('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = validate_env('CELERY_RESULT_BACKEND')
-
-# Import celery app at the end to avoid circular import
-from .celery import app as celery_app
-
-__all__ = ('celery_app',)

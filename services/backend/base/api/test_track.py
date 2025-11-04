@@ -1,8 +1,8 @@
 from ninja.testing import TestClient
-from . import router_track
+from .track import router
 import pytest
 
-client = TestClient(router_track)
+client = TestClient(router)
 
 path = '/track'
 method = 'POST'
