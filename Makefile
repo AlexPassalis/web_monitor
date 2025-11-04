@@ -17,9 +17,7 @@ init:
 	git config core.hooksPath bin/.githooks
 
 start:
-	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -gt 0 ]; then \
-		echo "Docker compose \"${COMPOSE_NAME}\" is already running."; \
-	else \
+	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -eq 0 ]; then \
 		bin/create_postgres_volume.sh; \
 		bin/create_valkey_volume.sh; \
 		bin/create_docker_network.sh; \
