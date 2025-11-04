@@ -1,14 +1,12 @@
-# Create a new django project: django-admin startproject <config folder name, e.g. config> .
-# Create a new app inside the project: python manage.py startapp <app name, e.g. api>
-
 SHELL = /usr/bin/env bash -euo pipefail
 MAKEFLAGS += --no-print-directory
 LATESTDUMP = latest.dump
 
 COMPOSE_NAME = project
+FRONTEND_SERVICE_NAME= frontend
 BACKEND_SERVICE_NAME = backend
 
-.PHONY: default init start stop lint fix check check_type test lint_backend fix_backend check_type_backend test_backend migrate create_superuser 
+.PHONY: default init start stop lint check_type check fix test lint_backend check_type_backend fix_backend test_backend migrate create_superuser 
 
 default: start
 
@@ -34,18 +32,20 @@ stop:
 lint:
 	@${MAKE} lint_backend
 
-fix:
-	@${MAKE} fix_backend
+check_type:
+	@${MAKE} check_type_backend
 
 check:
 	@${MAKE} lint
 	@${MAKE} check_type
 
-check_type:
-	@${MAKE} check_type_backend
+fix:
+	@${MAKE} fix_backend
 
 test:
 	@${MAKE} test_backend
+
+#
 
 # BACKEND_SERVICE_NAME
 lint_backend:
@@ -53,14 +53,14 @@ lint_backend:
 	@bin/dockerize_backend ruff check .
 	@bin/dockerize_backend ruff format --check .
 
+check_type_backend:
+	@echo "*** Checking types inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend mypy .
+
 fix_backend:
 	@echo "*** Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service."
 	@bin/dockerize_backend ruff format .
 	@bin/dockerize_backend ruff check --fix .
-
-check_type_backend:
-	@echo "*** Checking types inside \"${BACKEND_SERVICE_NAME}\" service."
-	@bin/dockerize_backend mypy .
 
 test_backend:
 	@echo "*** Running tests inside \"${BACKEND_SERVICE_NAME}\" service."
