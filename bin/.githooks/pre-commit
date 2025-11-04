@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "*** Pre-commit hook"
+
+make fix
+
+# Re-stage all modified tracked files
+git add -u

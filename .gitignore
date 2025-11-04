@@ -4,9 +4,10 @@
 # Root
 
 # services/backend
-__pycache__/
 .mypy_cache/
 .pytest_cache/
+.ruff_cache/
+__pycache__/
 celerybeat-schedule
 celerybeat-schedule-shm
 celerybeat-schedule-wal

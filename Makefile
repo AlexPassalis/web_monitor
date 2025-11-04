@@ -8,11 +8,13 @@ LATESTDUMP = latest.dump
 COMPOSE_NAME = project
 BACKEND_SERVICE_NAME = backend
 
-.PHONY: create_docker_network install start 
+.PHONY: default init start stop lint fix check check_type test lint_backend fix_backend check_type_backend test_backend migrate create_superuser 
 
 default: start
 
 init:
+	@echo "*** Initializing git hooks"
+	git config core.hooksPath bin/.githooks
 
 start:
 	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -gt 0 ]; then \
@@ -31,11 +33,32 @@ stop:
 		docker compose -p ${COMPOSE_NAME} down; \
 	fi
 
+lint:
+	@${MAKE} lint_backend
+
+fix:
+	@${MAKE} fix_backend
+
+check:
+	@${MAKE} lint
+	@${MAKE} check_type
+
 check_type:
 	@${MAKE} check_type_backend
 
 test:
 	@${MAKE} test_backend
+
+# BACKEND_SERVICE_NAME
+lint_backend:
+	@echo "*** Linting inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend.sh ruff check .
+	@bin/dockerize_backend.sh ruff format --check .
+
+fix_backend:
+	@echo "*** Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend.sh ruff check --fix .
+	@bin/dockerize_backend.sh ruff format .
 
 check_type_backend:
 	@echo "*** Checking types inside \"${BACKEND_SERVICE_NAME}\" service."
