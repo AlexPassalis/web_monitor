@@ -46,6 +46,9 @@ USER appuser
 ENV ENV=development
 ENV ALLOWED_HOSTS=localhost,127.0.0.1,${HOST}
 ENV CORS_ALLOWED_ORIGINS=http://localhost:${PORT}
+# Prevent python from creating __pycache__ files.
+ENV PYTHONDONTWRITEBYTECODE=1
+
 # Default init command, is overriden for the worker and beat service in the docker-compose file.
 CMD ["sh", "-c", "gunicorn config.wsgi:application --bind ${HOST}:${PORT} --reload"]
 
