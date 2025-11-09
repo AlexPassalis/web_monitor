@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from base.models import TrackedWebsite, WebsiteScreenshot
 
 
@@ -10,15 +11,15 @@ class TrackedWebsiteAdmin(admin.ModelAdmin):
     fields = ('url', 'minute', 'hour', 'day')
 
     @admin.display(description='minute Users')
-    def minute_count(self, obj):
+    def minute_count(self, obj: TrackedWebsite) -> int:
         return obj.minute.count()
 
     @admin.display(description='hour Users')
-    def hour_count(self, obj):
+    def hour_count(self, obj: TrackedWebsite) -> int:
         return obj.hour.count()
 
     @admin.display(description='day Users')
-    def day_count(self, obj):
+    def day_count(self, obj: TrackedWebsite) -> int:
         return obj.day.count()
 
 

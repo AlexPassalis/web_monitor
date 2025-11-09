@@ -32,6 +32,3 @@ django_settings_module = "config.settings"
 
 [tool.pyright]
 pythonVersion = "3.13"
-reportMissingImports = "none"
-reportMissingModuleSource = "none"
-
