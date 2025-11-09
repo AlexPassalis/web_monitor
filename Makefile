@@ -3,10 +3,10 @@ MAKEFLAGS += --no-print-directory
 LATESTDUMP = latest.dump
 
 COMPOSE_NAME = project
-FRONTEND_SERVICE_NAME= frontend
+FRONTEND_SERVICE_NAME = frontend
 BACKEND_SERVICE_NAME = backend
 
-.PHONY: default init start stop lint check_type check fix test lint_backend check_type_backend fix_backend test_backend migrate create_superuser 
+.PHONY: default init start stop lint check_type check fix test install_backend lint_backend check_type_backend fix_backend test_backend migrate create_superuser 
 
 default: start
 
@@ -19,6 +19,7 @@ start:
 		bin/create_postgres_volume; \
 		bin/create_valkey_volume; \
 		bin/create_docker_network; \
+		${MAKE} install; \
 		docker compose -f docker-compose.yml up --build -d; \
 	fi
 
@@ -28,6 +29,9 @@ stop:
 	else \
 		docker compose -p ${COMPOSE_NAME} down; \
 	fi
+
+install:
+	@${MAKE} install_backend
 
 lint:
 	@${MAKE} lint_backend
@@ -45,9 +49,15 @@ fix:
 test:
 	@${MAKE} test_backend
 
-#
+# FRONTEND_SERVICE_NAME
 
 # BACKEND_SERVICE_NAME
+install_backend:
+	@echo "*** Installing backend dependencies."
+	@bin/create_venv
+	@source .venv/bin/activate; \
+		pip install -r services/backend/requirements/development.txt
+
 lint_backend:
 	@echo "*** Linting inside \"${BACKEND_SERVICE_NAME}\" service."
 	@bin/dockerize_backend ruff check .
