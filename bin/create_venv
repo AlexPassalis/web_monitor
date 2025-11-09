@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PYTHON_VERSION="python3.13.3"
+PYTHON_VERSION="3.13.3"
 
 if [ -d ".venv" ]; then
     echo ".venv already exists."
 else
-    "$PYTHON_VERSION" -m venv .venv
+    pyenv local "$PYTHON_VERSION"
+    python3 -m venv .venv
     echo ".venv created."
 fi
