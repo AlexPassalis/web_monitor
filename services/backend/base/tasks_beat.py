@@ -19,21 +19,19 @@ async def async_run_every_minute(tracked_websites: list[TrackedWebsite]) -> None
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
 
-        tasks = []
+        tasks: list[asyncio.Task[tuple[ImageHash, bytes]]] = []
         for tracked_website in tracked_websites:
-            task = async_get_screenshot_perceptual_hash(browser, tracked_website.url)
+            task = asyncio.create_task(
+                async_get_screenshot_perceptual_hash(browser, tracked_website.url)
+            )
             tasks.append(task)
 
-        results = await asyncio.gather(*tasks)
+        results: list[tuple[ImageHash, bytes]] = await asyncio.gather(*tasks)
 
         await browser.close()
 
-    html_contents: dict[int, tuple[ImageHash, bytes]] = {}
     for i, tracked_website in enumerate(tracked_websites):
-        html_contents[tracked_website.id] = results[i]
-
-    for tracked_website in tracked_websites:
-        perpetual_hash, screenshot_bytes = html_contents[tracked_website.id]
+        perpetual_hash, screenshot_bytes = results[i]
         print(perpetual_hash)
 
 
