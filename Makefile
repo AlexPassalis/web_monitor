@@ -18,6 +18,7 @@ start:
 	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -eq 0 ]; then \
 		bin/create_postgres_volume; \
 		bin/create_valkey_volume; \
+		bin/create_minio_volume; \
 		bin/create_docker_network; \
 		${MAKE} install; \
 		docker compose -f docker-compose.yml up --build -d; \

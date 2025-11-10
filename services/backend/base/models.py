@@ -62,6 +62,12 @@ class WebsiteScreenshot(models.Model):
         help_text='The perceptual hash of the screenshot for comparison.',
     )
 
+    s3_key = models.CharField(
+        max_length=512,
+        default='',
+        help_text='The S3 object key where the screenshot is stored.',
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text='The timestamp when the screenshot was created.',

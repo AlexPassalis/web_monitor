@@ -30,3 +30,9 @@ DB_PASSWORD = validate_env('POSTGRES_PASSWORD')
 
 CELERY_BROKER_URL = validate_env('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = validate_env('CELERY_RESULT_BACKEND')
+
+S3_ENDPOINT_URL = validate_env('S3_ENDPOINT_URL')
+S3_ACCESS_KEY = validate_env('S3_ACCESS_KEY')
+S3_SECRET_KEY = validate_env('S3_SECRET_KEY')
+S3_BUCKET_NAME = validate_env('S3_BUCKET_NAME')
+S3_REGION = validate_env('S3_REGION')

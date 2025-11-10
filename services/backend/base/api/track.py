@@ -1,7 +1,8 @@
 from ninja import Router, Schema
+from ninja.security import django_auth
 from pydantic import HttpUrl
 from typing import Literal
-from django.http import HttpRequest
+from base.request import AuthenticatedRequest
 from base.models import TrackedWebsite
 from base.tasks import create_initial_screenshot
 
@@ -21,23 +22,34 @@ class ValidationErrorResponse(Schema):
     detail: list[dict]
 
 
+class UnauthorizedResponse(Schema):
+    detail: str
+
+
 @router.post(
     '/track',
+    auth=django_auth,
     response={
+        401: UnauthorizedResponse,
         422: ValidationErrorResponse,
         201: TrackResponse,
     },
 )
 def create_tracking(
-    request: HttpRequest,
+    request: AuthenticatedRequest,
     data: TrackRequest,
-) -> tuple[Literal[422], ValidationErrorResponse] | tuple[Literal[201], TrackResponse]:
+) -> (
+    tuple[Literal[401], UnauthorizedResponse]
+    | tuple[Literal[422], ValidationErrorResponse]
+    | tuple[Literal[201], TrackResponse]
+):
     """Track a new URL for monitoring."""
-    url = str(data.url)
 
-    tracked_website, created = TrackedWebsite.objects.get_or_create(
-        url=url,
-    )  # TODO add the User in min, hour or day.
+    url = str(data.url)
+    user = request.auth
+
+    tracked_website, created = TrackedWebsite.objects.get_or_create(url=url)
+    getattr(tracked_website, data.interval).add(user)
 
     if created:
         create_initial_screenshot.apply_async(
