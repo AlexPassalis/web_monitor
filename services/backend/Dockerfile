@@ -1,7 +1,7 @@
 FROM python:3.13.3-slim AS base
 ENV HOST=0.0.0.0
 ENV PORT=8000
-ENV DJANGO_SETTINGS_MODULE=config.settings
+
 # Set Playwright to use root's cache
 ENV PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
 

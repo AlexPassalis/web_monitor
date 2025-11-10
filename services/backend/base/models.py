@@ -68,6 +68,12 @@ class WebsiteScreenshot(models.Model):
         help_text='The S3 object key where the screenshot is stored.',
     )
 
+    change_summary = models.TextField(
+        null=True,
+        blank=True,
+        help_text='AI-generated summary of changes detected in this screenshot.',
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text='The timestamp when the screenshot was created.',

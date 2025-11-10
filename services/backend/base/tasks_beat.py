@@ -10,7 +10,9 @@ from celery import shared_task
 
 from playwright.async_api import async_playwright
 from base.utils import async_get_screenshot_perceptual_hash
-from config.s3 import upload_file, ensure_bucket_exists
+from config.s3 import upload_file, ensure_bucket_exists, get_s3_client
+from config.llm import compare_screenshots
+from config import S3_BUCKET_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +50,27 @@ async def async_run_every_minute(tracked_websites: list[TrackedWebsite]) -> None
 
             await sync_to_async(upload_file)(screenshot_bytes, s3_key, content_type='image/png')
 
+            change_summary = None
+            if latest_screenshot is not None and latest_screenshot.s3_key:
+                try:
+                    s3_client = await sync_to_async(get_s3_client)()
+                    previous_screenshot_bytes = await sync_to_async(
+                        lambda: s3_client.get_object(
+                            Bucket=S3_BUCKET_NAME, Key=latest_screenshot.s3_key
+                        )['Body'].read()
+                    )()
+
+                    change_summary = await sync_to_async(compare_screenshots)(
+                        previous_screenshot_bytes, screenshot_bytes, tracked_website.url
+                    )
+                except Exception as e:
+                    logger.error(f'Failed to generate change summary for {tracked_website.url}: {e}')
+
             await sync_to_async(WebsiteScreenshot.objects.create)(
                 tracked_website=tracked_website,
                 perceptual_hash=perpetual_hash_str,
                 s3_key=s3_key,
+                change_summary=change_summary,
             )
             logger.info(
                 f'New screenshot created for: {tracked_website.url} | '

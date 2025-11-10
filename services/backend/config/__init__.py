@@ -14,7 +14,7 @@ ENV = environ.get('ENV')
 if ENV not in ('development', 'testing', 'production'):
     raise SystemExit(f'Invalid ENV value: {ENV}.')
 
-SECRET_KEY = 'django-insecure-q=d=fn=($+skv0xg^hd2g#w7*y)-8jdd%k8uwiahfumg4z9i4x'
+SECRET_KEY = validate_env('SECRET_KEY')
 DEBUG = True if ENV != 'production' else False
 LOG_LEVEL = 'DEBUG' if ENV == 'development' else 'INFO'
 ALLOWED_HOSTS = [host.strip() for host in validate_env('ALLOWED_HOSTS').split(',')]
@@ -36,3 +36,5 @@ S3_ACCESS_KEY = validate_env('S3_ACCESS_KEY')
 S3_SECRET_KEY = validate_env('S3_SECRET_KEY')
 S3_BUCKET_NAME = validate_env('S3_BUCKET_NAME')
 S3_REGION = validate_env('S3_REGION')
+
+OPENROUTER_API_KEY = validate_env('OPENROUTER_API_KEY')

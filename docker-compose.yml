@@ -16,12 +16,8 @@ services:
     build:
       context: ./services/db
       dockerfile: Dockerfile
-    environment:
-      POSTGRES_HOST: db
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: project_postgres_db
-      POSTGRES_USER: project_postgres_user
-      POSTGRES_PASSWORD: project_postgres_password
+    env_file:
+      - ./services/db/.env
     restart: always
     volumes:
       - volume_pjoject_postgres:/var/lib/postgresql/data
@@ -94,19 +90,8 @@ services:
       context: ./services/backend
       dockerfile: Dockerfile
       target: dev
-    environment:
-      POSTGRES_HOST: db
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: project_postgres_db
-      POSTGRES_USER: project_postgres_user
-      POSTGRES_PASSWORD: project_postgres_password
-      CELERY_BROKER_URL: redis://cache:6379/0 # Celery message broker (task queue) - using Valkey database 0
-      CELERY_RESULT_BACKEND: redis://cache:6379/1 # Celery result storage (task results) - using Valkey database 1
-      S3_ENDPOINT_URL: http://minio:9000
-      S3_ACCESS_KEY: minio_admin
-      S3_SECRET_KEY: minio_password
-      S3_BUCKET_NAME: screenshots
-      S3_REGION: us-east-1
+    env_file:
+      - ./services/backend/.env
     tty: true
     restart: always
     volumes:
@@ -130,19 +115,8 @@ services:
       dockerfile: Dockerfile
       target: dev
     command: watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config beat --loglevel=info
-    environment:
-      POSTGRES_HOST: db
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: project_postgres_db
-      POSTGRES_USER: project_postgres_user
-      POSTGRES_PASSWORD: project_postgres_password
-      CELERY_BROKER_URL: redis://cache:6379/0 # Celery message broker (task queue) - using Valkey database 0
-      CELERY_RESULT_BACKEND: redis://cache:6379/1 # Celery result storage (task results) - using Valkey database 1
-      S3_ENDPOINT_URL: http://minio:9000
-      S3_ACCESS_KEY: minio_admin
-      S3_SECRET_KEY: minio_password
-      S3_BUCKET_NAME: screenshots
-      S3_REGION: us-east-1
+    env_file:
+      - ./services/backend/.env
     restart: always
     volumes:
       - ./services/backend:/app
@@ -164,19 +138,8 @@ services:
       target: dev
     user: appuser
     command: watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info -E
-    environment:
-      POSTGRES_HOST: db
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: project_postgres_db
-      POSTGRES_USER: project_postgres_user
-      POSTGRES_PASSWORD: project_postgres_password
-      CELERY_BROKER_URL: redis://cache:6379/0 # Celery message broker (task queue) - using Valkey database 0
-      CELERY_RESULT_BACKEND: redis://cache:6379/1 # Celery result storage (task results) - using Valkey database 1
-      S3_ENDPOINT_URL: http://minio:9000
-      S3_ACCESS_KEY: minio_admin
-      S3_SECRET_KEY: minio_password
-      S3_BUCKET_NAME: screenshots
-      S3_REGION: us-east-1
+    env_file:
+      - ./services/backend/.env
     restart: always
     volumes:
       - ./services/backend:/app
