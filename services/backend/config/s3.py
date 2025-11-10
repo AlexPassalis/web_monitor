@@ -31,7 +31,6 @@ def ensure_bucket_exists() -> None:
 
     try:
         s3_client.head_bucket(Bucket=S3_BUCKET_NAME)
-        logger.info(f'Bucket {S3_BUCKET_NAME} already exists')
     except ClientError as e:
         error_code = e.response['Error']['Code']
         if error_code == '404':

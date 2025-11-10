@@ -44,6 +44,10 @@ async def async_run_every_minute(tracked_websites: list[TrackedWebsite]) -> None
 
         if latest_screenshot is None or latest_screenshot.perceptual_hash != perpetual_hash_str:
             previous_hash = latest_screenshot.perceptual_hash if latest_screenshot else 'None'
+            logger.info(
+                f'Changes detected for {tracked_website.url} | '
+                f'Previous Hash: {previous_hash} | Current Hash: {perpetual_hash_str}'
+            )
 
             timestamp = datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S')
             s3_key = f'screenshots/{tracked_website.id}/{timestamp}.png'
@@ -64,7 +68,9 @@ async def async_run_every_minute(tracked_websites: list[TrackedWebsite]) -> None
                         previous_screenshot_bytes, screenshot_bytes, tracked_website.url
                     )
                 except Exception as e:
-                    logger.error(f'Failed to generate change summary for {tracked_website.url}: {e}')
+                    logger.error(
+                        f'Failed to generate change summary for {tracked_website.url}: {e}'
+                    )
 
             await sync_to_async(WebsiteScreenshot.objects.create)(
                 tracked_website=tracked_website,
@@ -72,13 +78,9 @@ async def async_run_every_minute(tracked_websites: list[TrackedWebsite]) -> None
                 s3_key=s3_key,
                 change_summary=change_summary,
             )
-            logger.info(
-                f'New screenshot created for: {tracked_website.url} | '
-                f'Previous hash: {previous_hash} | Current hash: {perpetual_hash_str}'
-            )
         else:
             logger.info(
-                f'No changes detected for: {tracked_website.url} | Hash: {perpetual_hash_str}'
+                f'No changes detected for {tracked_website.url} | Hash: {perpetual_hash_str}'
             )
 
 
