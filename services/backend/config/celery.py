@@ -10,16 +10,6 @@ app.conf.beat_schedule = {
         'schedule': 60.0,  # every 60 seconds
         'options': {'queue': 'high_priority'},
     },
-    'run-every-hour': {
-        'task': 'base.tasks_beat.run_every_hour',
-        'schedule': crontab(minute=0),  # every hour at minute 0
-        'options': {'queue': 'medium_priority'},
-    },
-    'run-every-day': {
-        'task': 'base.tasks_beat.run_every_day',
-        'schedule': crontab(hour=0, minute=0),  # every day at midnight
-        'options': {'queue': 'low_priority'},
-    },
 }
 
 app.autodiscover_tasks()

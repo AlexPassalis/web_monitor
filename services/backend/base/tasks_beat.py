@@ -106,19 +106,3 @@ def run_every_minute() -> None:
 #            logger.info(f'New snapshot created for {tracked_website.url}')
 #        else:
 #            logger.info(f'No changes detected for {tracked_website.url}')
-
-
-@shared_task
-def run_every_hour() -> None:
-    """Celery task that runs every hour."""
-
-    logger.info('There are no websites being tracked every hour.')
-    pass
-
-
-@shared_task
-def run_every_day() -> None:
-    """Celery task that runs every day."""
-
-    logger.info('There are no websites being tracked every day.')
-    pass

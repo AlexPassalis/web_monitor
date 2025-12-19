@@ -55,10 +55,7 @@ test:
 # BACKEND_SERVICE_NAME
 install_backend:
 	@echo "*** Installing backend dependencies."
-	@bin/create_venv
-	@source .venv/bin/activate; \
-		pip install --upgrade pip; \
-		pip install -r services/backend/requirements/development.txt \
+	@cd services/backend && uv sync --dev
 
 lint_backend:
 	@echo "*** Linting inside \"${BACKEND_SERVICE_NAME}\" service."

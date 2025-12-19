@@ -96,6 +96,7 @@ services:
     restart: always
     volumes:
       - ./services/backend:/app
+      - /app/.venv
     networks:
       - network_project
     ports:
@@ -114,12 +115,13 @@ services:
       context: ./services/backend
       dockerfile: Dockerfile
       target: dev
-    command: watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config beat --loglevel=info
+    command: uv run watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config beat --loglevel=info
     env_file:
       - ./services/backend/.env
     restart: always
     volumes:
       - ./services/backend:/app
+      - /app/.venv
     networks:
       - network_project
 
@@ -137,11 +139,12 @@ services:
       dockerfile: Dockerfile
       target: dev
     user: appuser
-    command: watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info -E
+    command: uv run watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info -E
     env_file:
       - ./services/backend/.env
     restart: always
     volumes:
       - ./services/backend:/app
+      - /app/.venv
     networks:
       - network_project
