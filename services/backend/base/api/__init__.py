@@ -9,17 +9,17 @@ from .csrf import router as csrf_router
 
 
 api: NinjaAPI = NinjaAPI(
-    title='Backend Service API',
-    version='1.0.0',
-    description='API for tracking and monitoring services',
+    title='Backend API Service',
+    version='0.0.1',
+    description='API for tracking webpage changes',
     csrf=True,
 )
 
-api.add_router('', favicon_router)
 api.add_router('/', health_router)
-api.add_router('/', track_router)
+api.add_router('', favicon_router)
 api.add_router('/', auth_router)
 api.add_router('/', csrf_router)
+api.add_router('/', track_router)
 
 urlpatterns: list[URLResolver] = [
     path('', api.urls),

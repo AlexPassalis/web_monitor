@@ -1,4 +1,4 @@
-from base.models import TrackedWebsite, WebsiteScreenshot
+from base.models import Webpage, WebpageScreenshot
 from imagehash import ImageHash
 
 import asyncio
@@ -17,7 +17,7 @@ from config import S3_BUCKET_NAME
 logger = logging.getLogger(__name__)
 
 
-async def async_run_every_minute(tracked_websites: list[TrackedWebsite]) -> None:
+async def async_run_every_minute(tracked_websites: list[Webpage]) -> None:
     """Async implementation with concurrent screenshot processing."""
 
     await sync_to_async(ensure_bucket_exists)()
@@ -72,7 +72,7 @@ async def async_run_every_minute(tracked_websites: list[TrackedWebsite]) -> None
                         f'Failed to generate change summary for {tracked_website.url}: {e}'
                     )
 
-            await sync_to_async(WebsiteScreenshot.objects.create)(
+            await sync_to_async(WebpageScreenshot.objects.create)(
                 tracked_website=tracked_website,
                 perceptual_hash=perpetual_hash_str,
                 s3_key=s3_key,
@@ -88,7 +88,7 @@ async def async_run_every_minute(tracked_websites: list[TrackedWebsite]) -> None
 def run_every_minute() -> None:
     """Celery task that runs every minute."""
 
-    tracked_websites_qs = TrackedWebsite.objects.exclude(minute__isnull=True).distinct()
+    tracked_websites_qs = Webpage.objects.exclude(minute__isnull=True).distinct()
     if not tracked_websites_qs.exists():
         logger.info('There are no websites being tracked every minute.')
         return

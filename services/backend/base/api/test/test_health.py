@@ -1,5 +1,5 @@
 from ninja.testing import TestClient
-from .health import router
+from ..health import router
 import pytest
 
 client = TestClient(router)

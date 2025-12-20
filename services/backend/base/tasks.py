@@ -4,7 +4,7 @@ from datetime import datetime
 from celery import shared_task
 from playwright.sync_api import sync_playwright
 
-from base.models import WebsiteScreenshot
+from base.models import WebpageScreenshot
 from base.utils import sync_get_screenshot_perceptual_hash
 from config.s3 import upload_file, ensure_bucket_exists
 
@@ -32,7 +32,7 @@ def create_initial_screenshot(tracked_website_id: int, tracked_website_url: str)
 
     upload_file(screenshot_bytes, s3_key, content_type='image/png')
 
-    WebsiteScreenshot.objects.create(
+    WebpageScreenshot.objects.create(
         tracked_website_id=tracked_website_id,
         perceptual_hash=str(perceptual_hash),
         s3_key=s3_key,

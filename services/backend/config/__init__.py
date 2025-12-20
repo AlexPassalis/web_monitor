@@ -37,5 +37,3 @@ S3_ACCESS_KEY = validate_env('S3_ACCESS_KEY')
 S3_SECRET_KEY = validate_env('S3_SECRET_KEY')
 S3_BUCKET_NAME = validate_env('S3_BUCKET_NAME')
 S3_REGION = validate_env('S3_REGION')
-
-HUGGINGFACE_API_TOKEN = validate_env('HUGGINGFACE_API_TOKEN_PROJECT')

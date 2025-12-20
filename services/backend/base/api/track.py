@@ -3,11 +3,10 @@ from ninja.security import django_auth
 from pydantic import HttpUrl
 from typing import Literal
 from base.request import AuthenticatedRequest
-from base.models import TrackedWebsite
+from base.models import Webpage
 from base.tasks import create_initial_screenshot
 
-router = Router(tags=['Tracking'])
-
+router = Router(tags=['Webpage tracking'])
 
 class TrackRequest(Schema):
     url: HttpUrl
@@ -15,7 +14,7 @@ class TrackRequest(Schema):
 
 
 class TrackResponse(Schema):
-    message: Literal['URL tracked successfully']
+    message: Literal['Webpage tracked successfully']
 
 
 class ValidationErrorResponse(Schema):
@@ -35,7 +34,7 @@ class UnauthorizedResponse(Schema):
         201: TrackResponse,
     },
 )
-def create_tracking(
+def add_webpage(
     request: AuthenticatedRequest,
     data: TrackRequest,
 ) -> (
@@ -46,7 +45,7 @@ def create_tracking(
     url = str(data.url)
     user = request.auth
 
-    tracked_website, created = TrackedWebsite.objects.get_or_create(url=url)
+    tracked_website, created = Webpage.objects.get_or_create(url=url)
     getattr(tracked_website, data.interval).add(user)
 
     if created:
@@ -56,5 +55,5 @@ def create_tracking(
         )
 
     return 201, TrackResponse(
-        message='URL tracked successfully',
+        message='Webpage tracked successfully',
     )
