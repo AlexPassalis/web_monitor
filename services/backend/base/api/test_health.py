@@ -4,7 +4,6 @@ import pytest
 
 client = TestClient(router)
 
-
 @pytest.mark.django_db
 def test_health_check():
     response = client.get('/health')

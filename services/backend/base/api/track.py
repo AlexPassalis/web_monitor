@@ -43,8 +43,6 @@ def create_tracking(
     | tuple[Literal[422], ValidationErrorResponse]
     | tuple[Literal[201], TrackResponse]
 ):
-    """Track a new URL for monitoring."""
-
     url = str(data.url)
     user = request.auth
 

@@ -17,6 +17,7 @@ if ENV not in ('development', 'testing', 'production'):
 SECRET_KEY = validate_env('SECRET_KEY')
 DEBUG = True if ENV != 'production' else False
 LOG_LEVEL = 'DEBUG' if ENV == 'development' else 'INFO'
+
 ALLOWED_HOSTS = [host.strip() for host in validate_env('ALLOWED_HOSTS').split(',')]
 CORS_ALLOWED_ORIGINS = [
     origin.strip() for origin in validate_env('CORS_ALLOWED_ORIGINS').split(',')
