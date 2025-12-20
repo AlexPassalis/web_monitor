@@ -1,4 +1,5 @@
 FROM python:3.13.3-slim AS base
+ENV DJANGO_SETTINGS_MODULE=config.settings
 ENV HOST=0.0.0.0
 ENV PORT=8000
 # Set Playwright to use root's cache
@@ -27,7 +28,7 @@ COPY pyproject.toml uv.lock ./
 
 
 FROM deps AS deps-dev
-RUN uv sync --frozen --no-cache
+RUN uv sync --frozen --no-cache --extra dev
 # Install Playwright
 RUN uv run playwright install --with-deps chromium
 
@@ -58,7 +59,7 @@ USER appuser
 
 ENV ENV=development
 ENV ALLOWED_HOSTS=localhost,127.0.0.1,${HOST}
-ENV CORS_ALLOWED_ORIGINS=http://localhost:${PORT}
+ENV TRUSTED_ORIGINS=http://localhost:${PORT}
 # Prevent python from creating __pycache__ files.
 ENV PYTHONDONTWRITEBYTECODE=1
 # Default init command, is overriden for the worker and beat service in the docker-compose file.

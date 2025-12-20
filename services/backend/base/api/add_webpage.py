@@ -4,9 +4,10 @@ from pydantic import HttpUrl
 from typing import Literal
 from base.request import AuthenticatedRequest
 from base.models import Webpage
-from base.tasks import create_initial_screenshot
+from base.tasks.create_initial_webpagescreenshot import create_initial_webpagescreenshot
 
-router = Router(tags=['Webpage tracking'])
+router_add_webpage = Router(tags=['Webpage tracking'])
+
 
 class TrackRequest(Schema):
     url: HttpUrl
@@ -25,7 +26,7 @@ class UnauthorizedResponse(Schema):
     detail: str
 
 
-@router.post(
+@router_add_webpage.post(
     '/track',
     auth=django_auth,
     response={
@@ -44,13 +45,20 @@ def add_webpage(
 ):
     url = str(data.url)
     user = request.auth
+    interval = data.interval
 
-    tracked_website, created = Webpage.objects.get_or_create(url=url)
-    getattr(tracked_website, data.interval).add(user)
+    tracked_webpage, created = Webpage.objects.get_or_create(url=url)
+    match interval:
+        case 'minute':
+            tracked_webpage.minute.add(user)
+        case 'hour':
+            tracked_webpage.hour.add(user)
+        case 'day':
+            tracked_webpage.day.add(user)
 
     if created:
-        create_initial_screenshot.apply_async(
-            args=(tracked_website.id, url),
+        create_initial_webpagescreenshot.apply_async(
+            args=(tracked_webpage.id, url),
             queue='high_priority',
         )
 

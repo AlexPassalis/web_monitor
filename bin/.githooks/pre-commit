@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "*** Pre-commit hook"
+echo "==> Pre-commit hook"
 
 make fix
 

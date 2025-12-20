@@ -16,7 +16,7 @@ from config import (
     DEBUG,
     LOG_LEVEL,
     ALLOWED_HOSTS,
-    CORS_ALLOWED_ORIGINS,
+    TRUSTED_ORIGINS,
     DB_NAME,
     DB_HOST,
     DB_PORT,
@@ -24,6 +24,11 @@ from config import (
     DB_PASSWORD,
     CELERY_BROKER_URL,
     CELERY_RESULT_BACKEND,
+    S3_ENDPOINT_URL,
+    S3_ACCESS_KEY,
+    S3_SECRET_KEY,
+    S3_BUCKET_NAME,
+    S3_REGION,
 )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -40,8 +45,8 @@ SECRET_KEY = SECRET_KEY
 DEBUG = DEBUG
 
 ALLOWED_HOSTS = ALLOWED_HOSTS
-
-CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS
+CORS_ALLOWED_ORIGINS = TRUSTED_ORIGINS
+CSRF_TRUSTED_ORIGINS = TRUSTED_ORIGINS
 
 # Application definition
 
@@ -54,6 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Django Ninja apps
+    'ninja',
     # Third-party apps
     'corsheaders',
     # My apps
@@ -160,3 +166,20 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+# S3 Storage Configuration
+STORAGES = {
+    'default': {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'OPTIONS': {
+            'endpoint_url': S3_ENDPOINT_URL,
+            'access_key': S3_ACCESS_KEY,
+            'secret_key': S3_SECRET_KEY,
+            'bucket_name': S3_BUCKET_NAME,
+            'region_name': S3_REGION,
+        },
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}

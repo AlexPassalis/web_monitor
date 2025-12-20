@@ -1,12 +1,14 @@
 from ninja import Router, Schema
 from django.http import HttpRequest
 
-router = Router()
+router_health = Router()
+
 
 class HealthResponse(Schema):
     status: str
 
-@router.get(
+
+@router_health.get(
     '/health',
     response={200: HealthResponse},
     include_in_schema=False,

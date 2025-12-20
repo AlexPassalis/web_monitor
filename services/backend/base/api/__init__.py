@@ -1,25 +1,22 @@
 from ninja import NinjaAPI
 from django.urls import URLResolver, path
 
-from .track import router as track_router
-from .health import router as health_router
-from .favicon_ico import router as favicon_router
-from .auth import router as auth_router
-from .csrf import router as csrf_router
-
+from .health import router_health
+from .favicon_ico import router_favicon
+from .auth import router_auth
+from .add_webpage import router_add_webpage
 
 api: NinjaAPI = NinjaAPI(
     title='Backend API Service',
     version='0.0.1',
     description='API for tracking webpage changes',
-    csrf=True,
+    csrf=True,  # The JWT goes with the cookies, so we need CSRF protection
 )
 
-api.add_router('/', health_router)
-api.add_router('', favicon_router)
-api.add_router('/', auth_router)
-api.add_router('/', csrf_router)
-api.add_router('/', track_router)
+api.add_router('/', router_health)
+api.add_router('', router_favicon)
+api.add_router('/', router_auth)
+api.add_router('/', router_add_webpage)
 
 urlpatterns: list[URLResolver] = [
     path('', api.urls),

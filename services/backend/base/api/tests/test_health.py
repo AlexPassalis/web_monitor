@@ -1,8 +1,9 @@
 from ninja.testing import TestClient
-from ..health import router
+from api.health import router_health
 import pytest
 
-client = TestClient(router)
+client = TestClient(router_health)
+
 
 @pytest.mark.django_db
 def test_health_check():

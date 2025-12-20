@@ -11,7 +11,7 @@ BACKEND_SERVICE_NAME = backend
 default: start
 
 init:
-	@echo "*** Initializing git hooks"
+	@echo "==> Initializing git hooks"
 	git config core.hooksPath bin/.githooks
 
 start:
@@ -54,32 +54,32 @@ test:
 
 # BACKEND_SERVICE_NAME
 install_backend:
-	@echo "*** Installing backend dependencies."
-	@cd services/backend && uv sync --dev
+	@echo "==> Installing backend dependencies."
+	@cd services/backend && uv sync --extra dev
 
 lint_backend:
-	@echo "*** Linting inside \"${BACKEND_SERVICE_NAME}\" service."
-	@bin/dockerize_backend ruff check .
-	@bin/dockerize_backend ruff format --check .
+	@echo "==> Linting inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend uv run ruff check .
+	@bin/dockerize_backend uv run ruff format --check .
 
 check_type_backend:
-	@echo "*** Checking types inside \"${BACKEND_SERVICE_NAME}\" service."
-	@bin/dockerize_backend mypy .
+	@echo "==> Checking types inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend uv run mypy .
 
 fix_backend:
-	@echo "*** Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service."
-	@bin/dockerize_backend ruff format .
-	@bin/dockerize_backend ruff check --fix .
+	@echo "==> Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend uv run ruff format .
+	@bin/dockerize_backend uv run ruff check --fix .
 
 test_backend:
-	@echo "*** Running tests inside \"${BACKEND_SERVICE_NAME}\" service."
-	@bin/dockerize_backend env ENV=testing python -m pytest
+	@echo "==> Running tests inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend env ENV=testing uv run pytest
 
 migrate:
-	@echo "*** Creating and applying database migrations."
-	@bin/dockerize_backend python manage.py makemigrations
-	@bin/dockerize_backend python manage.py migrate
+	@echo "==> Creating and applying database migrations."
+	@bin/dockerize_backend uv run python manage.py makemigrations
+	@bin/dockerize_backend uv run python manage.py migrate
 
 create_superuser:
-	@echo "*** Creating Django superuser."
-	@bin/dockerize_backend python manage.py createsuperuser
+	@echo "==> Creating Django superuser."
+	@bin/dockerize_backend uv run python manage.py createsuperuser

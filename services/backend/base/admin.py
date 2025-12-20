@@ -25,7 +25,7 @@ class WebpageAdmin(admin.ModelAdmin):
 
 @admin.register(WebpageScreenshot)
 class WebpageScreenshotAdmin(admin.ModelAdmin):
-    list_display = ('tracked_website', 'perceptual_hash', 'created_at')
+    list_display = ('tracked_webpage', 'perceptual_hash', 'created_at')
     list_filter = ('created_at',)
-    search_fields = ('tracked_website__url',)
+    search_fields = ('tracked_webpage__url',)
     readonly_fields = ('created_at', 'perceptual_hash')
