@@ -1,7 +1,5 @@
 {
-  "python.defaultInterpreterPath": "${workspaceFolder}/services/backend/.venv/bin/python",
-  "python.analysis.extraPaths": [
-    "${workspaceFolder}/services/backend"
-  ],
+  "python.defaultInterpreterPath": "${workspaceFolder}/services/app/backend/.venv/bin/python",
+  "python.analysis.extraPaths": ["${workspaceFolder}/services/app/backend"],
   "python.analysis.typeCheckingMode": "standard"
 }
