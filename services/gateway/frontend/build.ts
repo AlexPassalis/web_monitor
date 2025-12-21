@@ -126,9 +126,12 @@ const formatFileSize = (bytes: number): string => {
 console.log("\n🚀 Starting build process...\n");
 
 const cliConfig = parseArgs();
-const outdir = cliConfig.outdir || path.join(process.cwd(), "dist");
+const outdir =
+  typeof cliConfig.outdir === "string"
+    ? cliConfig.outdir
+    : path.join(process.cwd(), "dist");
 
-if (existsSync(outdir)) {
+if (typeof outdir === "string" && existsSync(outdir)) {
   console.log(`🗑️ Cleaning previous build at ${outdir}`);
   await rm(outdir, { recursive: true, force: true });
 }
