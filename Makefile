@@ -53,10 +53,10 @@ fix:
 test:
 	@${MAKE} test_backend
 
-# FRONTEND_SERVICE_NAME
+# FRONTEND
 install_frontend:
 	@echo "==> Installing frontend dependencies."
-	@cd services/app/frontend && bun install
+	@cd services/gateway/frontend && bun install
 
 lint_frontend:
 	@echo "==> Linting inside \"${FRONTEND_SERVICE_NAME}\" service."
@@ -66,19 +66,10 @@ check_type_frontend:
 	@echo "==> Checking types inside \"${FRONTEND_SERVICE_NAME}\" service."
 	@bin/dockerize_frontend bun run type-check
 
-build_frontend:
-	@echo "==> Building frontend for production."
-	@bin/dockerize_frontend bun run build
-	@echo "==> Copying frontend build to backend static files."
-	@rm -rf services/app/backend/static/frontend
-	@cp -r services/app/frontend/dist services/app/backend/static/frontend
-	@echo "==> Running Django collectstatic."
-	@bin/dockerize_backend uv run python manage.py collectstatic --noinput
-
-# BACKEND_SERVICE_NAME
+# BACKEND
 install_backend:
 	@echo "==> Installing backend dependencies."
-	@cd services/app/backend && uv sync --extra dev
+	@cd services/backend && uv sync --extra dev
 
 lint_backend:
 	@echo "==> Linting inside \"${BACKEND_SERVICE_NAME}\" service."
@@ -99,7 +90,7 @@ test_backend:
 	@bin/dockerize_backend env ENV=testing uv run pytest
 
 migrate:
-	@echo "==> Creating and applying database migrations."
+	@echo "==> Creating andlying database migrations."
 	@bin/dockerize_backend uv run python manage.py makemigrations
 	@bin/dockerize_backend uv run python manage.py migrate
 

@@ -1,8 +1,10 @@
 # Everywhere
 .DS_Store
 .env
+*.key
+*.pem
 
-# services/app/backend
+# services/backend
 .venv/
 .mypy_cache/
 .pytest_cache/
@@ -13,5 +15,5 @@ celerybeat-schedule-shm
 celerybeat-schedule-wal
 migrations/
 
-# services/app/frontend
+# services/gateway/frontend
 node_modules/
