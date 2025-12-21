@@ -20,7 +20,6 @@ start:
 		bin/create_valkey_volume; \
 		bin/create_minio_volume; \
 		bin/create_docker_network; \
-		${MAKE} install; \
 		docker compose -f docker-compose.yml up --build -d; \
 		${MAKE} start_frontend; \
 	else \
