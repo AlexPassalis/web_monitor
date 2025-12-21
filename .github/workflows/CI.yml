@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build
+
+  check_migrations:
+    needs: build
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for missing migrations
+        run: make check_missing_migrations
+      - name: Run migrations
+        run: make migrate
+
+  test_backend:
+    needs: build
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run backend tests
+        run: make test

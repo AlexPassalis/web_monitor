@@ -13,7 +13,6 @@ __pycache__/
 celerybeat-schedule
 celerybeat-schedule-shm
 celerybeat-schedule-wal
-migrations/
 
 # services/gateway/frontend
 node_modules/

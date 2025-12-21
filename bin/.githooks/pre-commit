@@ -4,6 +4,7 @@ set -euo pipefail
 echo "==> Pre-commit hook"
 
 make fix
+make lint
 
 # Re-stage all modified tracked files
 git add -u

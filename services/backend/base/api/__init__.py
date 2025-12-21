@@ -10,7 +10,6 @@ api: NinjaAPI = NinjaAPI(
     title='Backend API Service',
     version='0.0.1',
     description='API for tracking webpage changes',
-    csrf=True,  # The JWT goes with the cookies, so we need CSRF protection
 )
 
 api.add_router('/', router_health)

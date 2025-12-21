@@ -3,5 +3,5 @@ set -euo pipefail
 
 echo "==> Pre-push hook"
 
+make check_missing_migrations
 make check
-make test
