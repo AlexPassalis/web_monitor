@@ -1,10 +1,10 @@
 from ninja.testing import TestClient
-from .track import router
+from base.api.add_webpage import router_add_webpage
 import pytest
 
-client = TestClient(router)
+client = TestClient(router_add_webpage)
 
-path = '/track'
+path = '/add_webpage'
 method = 'POST'
 
 default_interval = 'minute'

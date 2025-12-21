@@ -1,8 +1,8 @@
 from ninja.testing import TestClient
-from .favicon_ico import router
+from base.api.favicon_ico import router_favicon
 import pytest
 
-client = TestClient(router)
+client = TestClient(router_favicon)
 
 
 @pytest.mark.django_db

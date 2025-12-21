@@ -6,12 +6,12 @@ COMPOSE_NAME = project
 FRONTEND_SERVICE_NAME = frontend
 BACKEND_SERVICE_NAME = backend
 
-.PHONY: default init start stop lint check_type check fix test install_backend lint_backend check_type_backend fix_backend test_backend migrate create_superuser 
+.PHONY: default init start stop install lint check_type check fix test install_frontend start_frontend stop_frontend lint_frontend check_type_frontend install_backend lint_backend check_type_backend fix_backend test_backend makemigrations migrate create_superuser 
 
 default: start
 
 init:
-	@echo "*** Initializing git hooks"
+	@echo "==> Initializing git hooks"
 	git config core.hooksPath bin/.githooks
 
 start:
@@ -22,6 +22,9 @@ start:
 		bin/create_docker_network; \
 		${MAKE} install; \
 		docker compose -f docker-compose.yml up --build -d; \
+		${MAKE} start_frontend; \
+	else \
+		echo "Docker compose \"${COMPOSE_NAME}\" is already running."; \
 	fi
 
 stop:
@@ -29,16 +32,19 @@ stop:
 		echo "Docker compose \"${COMPOSE_NAME}\" is not running."; \
 	else \
 		docker compose -p ${COMPOSE_NAME} down; \
+		${MAKE} stop_frontend; \
 	fi
 
 install:
 	@${MAKE} install_backend
+	@${MAKE} install_frontend
 
 lint:
 	@${MAKE} lint_backend
 
 check_type:
 	@${MAKE} check_type_backend
+	@${MAKE} check_type_frontend
 
 check:
 	@${MAKE} lint
@@ -50,39 +56,56 @@ fix:
 test:
 	@${MAKE} test_backend
 
-# FRONTEND_SERVICE_NAME
+# FRONTEND
+install_frontend:
+	@echo "==> Installing frontend dependencies."
+	@cd services/gateway/frontend && bun install
 
-# BACKEND_SERVICE_NAME
+start_frontend:
+	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host."
+	@cd services/gateway/frontend && bun run dev
+
+stop_frontend:
+	@echo "==> Stopping \"${FRONTEND_SERVICE_NAME}\" service on host."
+	@pkill -f "bun run dev" || true
+
+lint_frontend:
+	@echo "==> Linting frontend on host."
+	@cd services/gateway/frontend && bun run lint
+
+check_type_frontend:
+
+# BACKEND
 install_backend:
-	@echo "*** Installing backend dependencies."
-	@bin/create_venv
-	@source .venv/bin/activate; \
-		pip install --upgrade pip; \
-		pip install -r services/backend/requirements/development.txt \
+	@echo "==> Installing backend dependencies."
+	@cd services/backend && uv sync --extra dev
 
 lint_backend:
-	@echo "*** Linting inside \"${BACKEND_SERVICE_NAME}\" service."
-	@bin/dockerize_backend ruff check .
-	@bin/dockerize_backend ruff format --check .
+	@echo "==> Linting inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend uv run ruff check .
+	@bin/dockerize_backend uv run ruff format --check .
 
 check_type_backend:
-	@echo "*** Checking types inside \"${BACKEND_SERVICE_NAME}\" service."
-	@bin/dockerize_backend mypy .
+	@echo "==> Checking types inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend uv run mypy .
 
 fix_backend:
-	@echo "*** Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service."
-	@bin/dockerize_backend ruff format .
-	@bin/dockerize_backend ruff check --fix .
+	@echo "==> Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend uv run ruff format .
+	@bin/dockerize_backend uv run ruff check --fix .
 
 test_backend:
-	@echo "*** Running tests inside \"${BACKEND_SERVICE_NAME}\" service."
-	@bin/dockerize_backend env ENV=testing python -m pytest
+	@echo "==> Running tests inside \"${BACKEND_SERVICE_NAME}\" service."
+	@bin/dockerize_backend env ENV=testing uv run pytest
+
+makemigrations:
+	@echo "==> Creating database migrations."
+	@bin/dockerize_backend uv run python manage.py makemigrations
 
 migrate:
-	@echo "*** Creating and applying database migrations."
-	@bin/dockerize_backend python manage.py makemigrations
-	@bin/dockerize_backend python manage.py migrate
+	@echo "==> Applying database migrations."
+	@bin/dockerize_backend uv run python manage.py migrate
 
 create_superuser:
-	@echo "*** Creating Django superuser."
-	@bin/dockerize_backend python manage.py createsuperuser
+	@echo "==> Creating Django superuser."
+	@bin/dockerize_backend uv run python manage.py createsuperuser

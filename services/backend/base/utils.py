@@ -8,9 +8,9 @@ from PIL import Image
 import imagehash
 
 
-def sync_get_screenshot_perceptual_hash(browser: SyncBrowser, url: str) -> tuple[ImageHash, bytes]:
+def take_webpagescreenshot(browser: SyncBrowser, url: str) -> tuple[ImageHash, bytes]:
     """
-    Take screenshot of URL and return perceptual hash + screenshot bytes.
+    Take screenshot of webpage and return perceptual hash + screenshot bytes.
     """
 
     page = browser.new_page()
@@ -26,11 +26,9 @@ def sync_get_screenshot_perceptual_hash(browser: SyncBrowser, url: str) -> tuple
     return perceptual_hash, screenshot_bytes
 
 
-async def async_get_screenshot_perceptual_hash(
-    browser: AsyncBrowser, url: str
-) -> tuple[ImageHash, bytes]:
+async def async_take_webpagescreenshot(browser: AsyncBrowser, url: str) -> tuple[ImageHash, bytes]:
     """
-    Take screenshot of URL and return perceptual hash + screenshot bytes.
+    Take screenshot of a webpage and return perceptual hash + screenshot bytes.
     """
 
     page = await browser.new_page()

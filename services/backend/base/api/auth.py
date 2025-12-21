@@ -1,10 +1,9 @@
 from ninja import Router, Schema
-from django.contrib.auth import authenticate, login, logout
 from django.http import HttpRequest
 from typing import Literal
+import django.contrib.auth
 
-
-router = Router(tags=['Authentication'])
+router_auth = Router(tags=['Authentication'])
 
 
 class LoginRequest(Schema):
@@ -24,36 +23,49 @@ class ErrorResponse(Schema):
     detail: str
 
 
-@router.post(
+@router_auth.post(
     '/login',
     response={
         200: LoginResponse,
         401: ErrorResponse,
     },
 )
-def login_user(
+def login(
     request: HttpRequest,
     data: LoginRequest,
 ) -> tuple[Literal[200], LoginResponse] | tuple[Literal[401], ErrorResponse]:
-    """Log in a user with username and password."""
+    """
+    Log a user in
+    """
 
-    user = authenticate(request, username=data.username, password=data.password)
+    user = django.contrib.auth.authenticate(request, username=data.username, password=data.password)
 
     if user is None:
         return 401, ErrorResponse(detail='Invalid username or password')
 
-    login(request, user)
+    django.contrib.auth.login(request, user)
     return 200, LoginResponse(message='Login successful')
 
 
-@router.post(
+@router_auth.post(
     '/logout',
     response={
         200: LogoutResponse,
     },
 )
-def logout_user(request: HttpRequest) -> tuple[Literal[200], LogoutResponse]:
-    """Log out the current user."""
+def logout(request: HttpRequest) -> tuple[Literal[200], LogoutResponse]:
+    """
+    Log the current user out
+    """
 
-    logout(request)
+    django.contrib.auth.logout(request)
     return 200, LogoutResponse(message='Logout successful')
+
+
+@router_auth.get('/crsf', response={200: dict})
+def get_crsf(request: HttpRequest) -> tuple[Literal[200], dict]:
+    """
+    Get CSRF token
+    """
+
+    return 200, {'csrfToken': request.META.get('CSRF_COOKIE')}

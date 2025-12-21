@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "*** Pre-push hook"
+echo "==> Pre-push hook"
 
 make check
 make test
