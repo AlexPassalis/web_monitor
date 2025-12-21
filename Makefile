@@ -6,7 +6,7 @@ COMPOSE_NAME = project
 FRONTEND_SERVICE_NAME = frontend
 BACKEND_SERVICE_NAME = backend
 
-.PHONY: default init start stop lint check_type check fix test install_backend lint_backend check_type_backend fix_backend test_backend migrate create_superuser 
+.PHONY: default init start stop install lint check_type check fix test install_frontend start_frontend stop_frontend lint_frontend check_type_frontend install_backend lint_backend check_type_backend fix_backend test_backend makemigrations migrate create_superuser 
 
 default: start
 
@@ -22,6 +22,9 @@ start:
 		bin/create_docker_network; \
 		${MAKE} install; \
 		docker compose -f docker-compose.yml up --build -d; \
+		${MAKE} start_frontend; \
+	else \
+		echo "Docker compose \"${COMPOSE_NAME}\" is already running."; \
 	fi
 
 stop:
@@ -29,6 +32,7 @@ stop:
 		echo "Docker compose \"${COMPOSE_NAME}\" is not running."; \
 	else \
 		docker compose -p ${COMPOSE_NAME} down; \
+		${MAKE} stop_frontend; \
 	fi
 
 install:
@@ -58,13 +62,19 @@ install_frontend:
 	@echo "==> Installing frontend dependencies."
 	@cd services/gateway/frontend && bun install
 
+start_frontend:
+	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host."
+	@cd services/gateway/frontend && bun run dev
+
+stop_frontend:
+	@echo "==> Stopping \"${FRONTEND_SERVICE_NAME}\" service on host."
+	@pkill -f "bun run dev" || true
+
 lint_frontend:
-	@echo "==> Linting inside \"${FRONTEND_SERVICE_NAME}\" service."
-	@bin/dockerize_frontend bun run lint
+	@echo "==> Linting frontend on host."
+	@cd services/gateway/frontend && bun run lint
 
 check_type_frontend:
-	@echo "==> Checking types inside \"${FRONTEND_SERVICE_NAME}\" service."
-	@bin/dockerize_frontend bun run type-check
 
 # BACKEND
 install_backend:
@@ -89,9 +99,12 @@ test_backend:
 	@echo "==> Running tests inside \"${BACKEND_SERVICE_NAME}\" service."
 	@bin/dockerize_backend env ENV=testing uv run pytest
 
-migrate:
-	@echo "==> Creating andlying database migrations."
+makemigrations:
+	@echo "==> Creating database migrations."
 	@bin/dockerize_backend uv run python manage.py makemigrations
+
+migrate:
+	@echo "==> Applying database migrations."
 	@bin/dockerize_backend uv run python manage.py migrate
 
 create_superuser:
