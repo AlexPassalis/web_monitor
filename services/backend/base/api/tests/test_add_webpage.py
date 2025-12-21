@@ -1,5 +1,5 @@
 from ninja.testing import TestClient
-from api.add_webpage import router_add_webpage
+from base.api.add_webpage import router_add_webpage
 import pytest
 
 client = TestClient(router_add_webpage)

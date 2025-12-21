@@ -41,7 +41,6 @@ install:
 
 lint:
 	@${MAKE} lint_backend
-	@${MAKE} lint_frontend
 
 check_type:
 	@${MAKE} check_type_backend

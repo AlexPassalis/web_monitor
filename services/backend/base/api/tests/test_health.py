@@ -1,5 +1,5 @@
 from ninja.testing import TestClient
-from api.health import router_health
+from base.api.health import router_health
 import pytest
 
 client = TestClient(router_health)
