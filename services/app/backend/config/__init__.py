@@ -21,6 +21,8 @@ LOG_LEVEL = 'DEBUG' if ENV == 'development' else 'INFO'
 ALLOWED_HOSTS = [host.strip() for host in validate_env('ALLOWED_HOSTS').split(',')]
 TRUSTED_ORIGINS = [origin.strip() for origin in validate_env('TRUSTED_ORIGINS').split(',')]
 
+CORS_ALLOW_CREDENTIALS = False if ENV == 'production' else True
+
 DB_HOST = validate_env('POSTGRES_HOST')
 DB_PORT = validate_env('POSTGRES_PORT')
 DB_NAME = validate_env('POSTGRES_DB')

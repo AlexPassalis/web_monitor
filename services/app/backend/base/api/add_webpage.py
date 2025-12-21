@@ -27,7 +27,7 @@ class UnauthorizedResponse(Schema):
 
 
 @router_add_webpage.post(
-    '/track',
+    '/add_webpage',
     auth=django_auth,
     response={
         401: UnauthorizedResponse,

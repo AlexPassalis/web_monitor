@@ -33,12 +33,15 @@ stop:
 
 install:
 	@${MAKE} install_backend
+	@${MAKE} install_frontend
 
 lint:
 	@${MAKE} lint_backend
+	@${MAKE} lint_frontend
 
 check_type:
 	@${MAKE} check_type_backend
+	@${MAKE} check_type_frontend
 
 check:
 	@${MAKE} lint
@@ -51,11 +54,31 @@ test:
 	@${MAKE} test_backend
 
 # FRONTEND_SERVICE_NAME
+install_frontend:
+	@echo "==> Installing frontend dependencies."
+	@cd services/app/frontend && bun install
+
+lint_frontend:
+	@echo "==> Linting inside \"${FRONTEND_SERVICE_NAME}\" service."
+	@bin/dockerize_frontend bun run lint
+
+check_type_frontend:
+	@echo "==> Checking types inside \"${FRONTEND_SERVICE_NAME}\" service."
+	@bin/dockerize_frontend bun run type-check
+
+build_frontend:
+	@echo "==> Building frontend for production."
+	@bin/dockerize_frontend bun run build
+	@echo "==> Copying frontend build to backend static files."
+	@rm -rf services/app/backend/static/frontend
+	@cp -r services/app/frontend/dist services/app/backend/static/frontend
+	@echo "==> Running Django collectstatic."
+	@bin/dockerize_backend uv run python manage.py collectstatic --noinput
 
 # BACKEND_SERVICE_NAME
 install_backend:
 	@echo "==> Installing backend dependencies."
-	@cd services/backend && uv sync --extra dev
+	@cd services/app/backend && uv sync --extra dev
 
 lint_backend:
 	@echo "==> Linting inside \"${BACKEND_SERVICE_NAME}\" service."

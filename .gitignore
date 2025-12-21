@@ -2,10 +2,8 @@
 .DS_Store
 .env
 
-# Root
+# services/app/backend
 .venv/
-
-# services/backend
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
@@ -14,3 +12,6 @@ celerybeat-schedule
 celerybeat-schedule-shm
 celerybeat-schedule-wal
 migrations/
+
+# services/app/frontend
+node_modules/

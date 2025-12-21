@@ -87,15 +87,15 @@ services:
         condition: service_healthy
     container_name: backend
     build:
-      context: ./services/backend
+      context: ./services/app/backend
       dockerfile: Dockerfile
       target: dev
     env_file:
-      - ./services/backend/.env
+      - ./services/app/backend/.env
     tty: true
     restart: always
     volumes:
-      - ./services/backend:/app
+      - ./services/app/backend:/app
       - /app/.venv
     networks:
       - network_project
@@ -112,15 +112,15 @@ services:
         condition: service_healthy
     container_name: celery_beat
     build:
-      context: ./services/backend
+      context: ./services/app/backend
       dockerfile: Dockerfile
       target: dev
     command: uv run watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config beat --loglevel=info
     env_file:
-      - ./services/backend/.env
+      - ./services/app/backend/.env
     restart: always
     volumes:
-      - ./services/backend:/app
+      - ./services/app/backend:/app
       - /app/.venv
     networks:
       - network_project
@@ -135,16 +135,16 @@ services:
         condition: service_healthy
     container_name: celery_worker
     build:
-      context: ./services/backend
+      context: ./services/app/backend
       dockerfile: Dockerfile
       target: dev
     user: appuser
     command: uv run watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info -E
     env_file:
-      - ./services/backend/.env
+      - ./services/app/backend/.env
     restart: always
     volumes:
-      - ./services/backend:/app
+      - ./services/app/backend:/app
       - /app/.venv
     networks:
       - network_project

@@ -17,6 +17,7 @@ from config import (
     LOG_LEVEL,
     ALLOWED_HOSTS,
     TRUSTED_ORIGINS,
+    CORS_ALLOW_CREDENTIALS,
     DB_NAME,
     DB_HOST,
     DB_PORT,
@@ -47,6 +48,8 @@ DEBUG = DEBUG
 ALLOWED_HOSTS = ALLOWED_HOSTS
 CORS_ALLOWED_ORIGINS = TRUSTED_ORIGINS
 CSRF_TRUSTED_ORIGINS = TRUSTED_ORIGINS
+
+CORS_ALLOW_CREDENTIALS = CORS_ALLOW_CREDENTIALS
 
 # Application definition
 
@@ -151,6 +154,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# TODO I believe this is only needed for production, when it will also serve the frontend
+# STATIC_ROOT = BASE_DIR / "staticfiles"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
