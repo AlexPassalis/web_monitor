@@ -34,7 +34,7 @@ Example:
 }
 
 const toCamelCase = (str: string): string =>
-  str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+  str.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 
 type Primitive = string | number | boolean | string[] | undefined;
 type NestedConfig = { [key: string]: Primitive | NestedConfig };
@@ -51,12 +51,7 @@ const parseValue = (value: string): Primitive => {
   return value;
 };
 
-type StringKeyedBuildConfig = {
-  [key: string]: any;
-};
-
 function parseArgs(): NestedConfig {
-  const config: StringKeyedBuildConfig = {};
   const config: NestedConfig = {};
   const args = process.argv.slice(2);
 
@@ -99,7 +94,7 @@ function parseArgs(): NestedConfig {
           config[parentKey] = {};
         }
         if (childKey) {
-          config[parentKey][childKey] = parseValue(value);
+          (config[parentKey] as NestedConfig)[childKey] = parseValue(value);
         }
       }
     } else {
@@ -131,6 +126,32 @@ const outdir =
     ? cliConfig.outdir
     : path.join(process.cwd(), "dist");
 
+// Only allow spreading keys that Bun.build expects
+const bunBuildConfig: Partial<Bun.BuildConfig> = {};
+for (const key of [
+  "entrypoints",
+  "outdir",
+  "plugins",
+  "minify",
+  "target",
+  "sourcemap",
+  "define",
+  "format",
+  "splitting",
+  "packages",
+  "publicPath",
+  "env",
+  "conditions",
+  "external",
+  "banner",
+  "footer",
+]) {
+  if (key in cliConfig) {
+    // @ts-expect-error: dynamic assignment
+    bunBuildConfig[key] = cliConfig[key];
+  }
+}
+
 if (typeof outdir === "string" && existsSync(outdir)) {
   console.log(`🗑️ Cleaning previous build at ${outdir}`);
   await rm(outdir, { recursive: true, force: true });
@@ -157,7 +178,7 @@ const result = await Bun.build({
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
   },
-  ...cliConfig,
+  ...bunBuildConfig,
 });
 
 const end = performance.now();
