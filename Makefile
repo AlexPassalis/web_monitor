@@ -20,7 +20,7 @@ start:
 		bin/create_valkey_volume; \
 		bin/create_minio_volume; \
 		bin/create_docker_network; \
-		docker compose -f docker-compose.yml up --build -d; \
+		docker compose -f docker-compose.yml up -d; \
 		${MAKE} start_frontend; \
 	else \
 		echo "Docker compose \"${COMPOSE_NAME}\" is already running."; \
