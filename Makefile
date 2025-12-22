@@ -63,7 +63,11 @@ install_frontend:
 
 start_frontend:
 	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host"
-	@cd services/gateway/frontend && bun run dev
+	@if [ "$$CI" = "true" ]; then \
+		cd services/gateway/frontend && bun run dev &; \
+	else \
+		cd services/gateway/frontend && bun run dev; \
+	fi
 
 stop_frontend:
 	@echo "==> Stopping \"${FRONTEND_SERVICE_NAME}\" service on host"
