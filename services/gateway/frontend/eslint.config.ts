@@ -5,10 +5,10 @@ import pluginReact from "eslint-plugin-react";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
+  js.configs.recommended,
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    plugins: { js, react: pluginReact },
-    extends: ["js/recommended"],
+    plugins: { react: pluginReact },
     languageOptions: { globals: globals.browser },
     settings: {
       react: {
