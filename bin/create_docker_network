@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOCKER_NETWORK="network_project"
+DOCKER_NETWORK="network_web_monitor"
 
 if docker network inspect "$DOCKER_NETWORK" >/dev/null 2>&1; then
     echo "Docker network \"$DOCKER_NETWORK\" already exists."

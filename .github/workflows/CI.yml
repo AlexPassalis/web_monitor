@@ -10,12 +10,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/build
+        with:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
 
   check_migrations:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/build
+        with:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
       - name: Check for missing migrations
         run: make check_missing_migrations
       - name: Run migrations
@@ -26,5 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/build
+        with:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
       - name: Run backend tests
         run: make test

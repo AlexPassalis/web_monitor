@@ -2,7 +2,7 @@ SHELL = /usr/bin/env bash -euo pipefail
 MAKEFLAGS += --no-print-directory
 LATESTDUMP = latest.dump
 
-COMPOSE_NAME = project
+COMPOSE_NAME = web_monitor
 FRONTEND_SERVICE_NAME = frontend
 BACKEND_SERVICE_NAME = backend
 
@@ -115,3 +115,6 @@ check_missing_migrations:
 create_superuser:
 	@echo "==> Creating Django superuser"
 	@bin/dockerize_backend uv run python manage.py createsuperuser
+
+show_git_crypt:
+	git-crypt status -e

@@ -1,10 +1,27 @@
-name: "Build"
+name: "build"
 description: "Build all the Docker compose containers"
+
+inputs:
+  GIT_CRYPT_KEY:
+    description: "GIT_CRYPT_KEY"
+    required: true
+
 runs:
   using: "composite"
   steps:
+    - name: Unlock git-crypt files
+      uses: sliteteam/github-action-git-crypt-unlock@1.2.0
+      env:
+        GIT_CRYPT_KEY: ${{ inputs.GIT_CRYPT_KEY }}
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+    - name: Build and cache Docker images
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        load: true
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
     - name: Start the containers
       shell: bash
       run: make start

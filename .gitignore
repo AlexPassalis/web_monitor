@@ -1,8 +1,5 @@
 # Everywhere
 .DS_Store
-.env
-*.key
-*.pem
 
 # services/backend
 .venv/
