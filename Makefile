@@ -2,7 +2,7 @@ SHELL = /usr/bin/env bash -euo pipefail
 MAKEFLAGS += --no-print-directory
 LATESTDUMP = latest.dump
 
-COMPOSE_NAME = project
+COMPOSE_NAME = web_monitor
 FRONTEND_SERVICE_NAME = frontend
 BACKEND_SERVICE_NAME = backend
 
@@ -20,8 +20,7 @@ start:
 		bin/create_valkey_volume; \
 		bin/create_minio_volume; \
 		bin/create_docker_network; \
-		${MAKE} install; \
-		docker compose -f docker-compose.yml up --build -d; \
+		docker compose -f docker-compose.yml up -d; \
 		${MAKE} start_frontend; \
 	else \
 		echo "Docker compose \"${COMPOSE_NAME}\" is already running."; \
@@ -41,6 +40,7 @@ install:
 
 lint:
 	@${MAKE} lint_backend
+	@${MAKE} lint_frontend
 
 check_type:
 	@${MAKE} check_type_backend
@@ -58,54 +58,67 @@ test:
 
 # FRONTEND
 install_frontend:
-	@echo "==> Installing frontend dependencies."
+	@echo "==> Installing frontend dependencies"
 	@cd services/gateway/frontend && bun install
 
 start_frontend:
-	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host."
-	@cd services/gateway/frontend && bun run dev
+	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host"
+	@if [ "$$CI" = "true" ]; then \
+		cd services/gateway/frontend && bun run dev & \
+	else \
+		cd services/gateway/frontend && bun run dev; \
+	fi
 
 stop_frontend:
-	@echo "==> Stopping \"${FRONTEND_SERVICE_NAME}\" service on host."
+	@echo "==> Stopping \"${FRONTEND_SERVICE_NAME}\" service on host"
 	@pkill -f "bun run dev" || true
 
 lint_frontend:
-	@echo "==> Linting frontend on host."
+	@echo "==> Linting frontend on host"
 	@cd services/gateway/frontend && bun run lint
 
 check_type_frontend:
+	@echo "==> Checking types in frontend on host"
+	@cd services/gateway/frontend && bun run check
 
 # BACKEND
 install_backend:
-	@echo "==> Installing backend dependencies."
+	@echo "==> Installing backend dependencies"
 	@cd services/backend && uv sync --extra dev
 
 lint_backend:
-	@echo "==> Linting inside \"${BACKEND_SERVICE_NAME}\" service."
+	@echo "==> Linting inside \"${BACKEND_SERVICE_NAME}\" service"
 	@bin/dockerize_backend uv run ruff check .
 	@bin/dockerize_backend uv run ruff format --check .
 
 check_type_backend:
-	@echo "==> Checking types inside \"${BACKEND_SERVICE_NAME}\" service."
+	@echo "==> Checking types inside \"${BACKEND_SERVICE_NAME}\" service"
 	@bin/dockerize_backend uv run mypy .
 
 fix_backend:
-	@echo "==> Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service."
+	@echo "==> Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service"
 	@bin/dockerize_backend uv run ruff format .
 	@bin/dockerize_backend uv run ruff check --fix .
 
 test_backend:
-	@echo "==> Running tests inside \"${BACKEND_SERVICE_NAME}\" service."
+	@echo "==> Running tests inside \"${BACKEND_SERVICE_NAME}\" service"
 	@bin/dockerize_backend env ENV=testing uv run pytest
 
 makemigrations:
-	@echo "==> Creating database migrations."
+	@echo "==> Creating database migrations"
 	@bin/dockerize_backend uv run python manage.py makemigrations
 
 migrate:
-	@echo "==> Applying database migrations."
+	@echo "==> Applying database migrations"
 	@bin/dockerize_backend uv run python manage.py migrate
 
+check_missing_migrations:
+	@echo "==> Checking for missing migrations"
+	@bin/dockerize_backend uv run python manage.py makemigrations --check --dry-run
+
 create_superuser:
-	@echo "==> Creating Django superuser."
+	@echo "==> Creating Django superuser"
 	@bin/dockerize_backend uv run python manage.py createsuperuser
+
+show_git_crypt:
+	git-crypt status -e

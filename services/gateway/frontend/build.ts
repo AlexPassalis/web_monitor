@@ -33,22 +33,26 @@ Example:
   process.exit(0);
 }
 
-const toCamelCase = (str: string): string => str.replace(/-([a-z])/g, g => g[1].toUpperCase());
+const toCamelCase = (str: string): string =>
+  str.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 
-const parseValue = (value: string): any => {
+type Primitive = string | number | boolean | string[] | undefined;
+type NestedConfig = { [key: string]: Primitive | NestedConfig };
+
+const parseValue = (value: string): Primitive => {
   if (value === "true") return true;
   if (value === "false") return false;
 
   if (/^\d+$/.test(value)) return parseInt(value, 10);
   if (/^\d*\.\d+$/.test(value)) return parseFloat(value);
 
-  if (value.includes(",")) return value.split(",").map(v => v.trim());
+  if (value.includes(",")) return value.split(",").map((v) => v.trim());
 
   return value;
 };
 
-function parseArgs(): Partial<Bun.BuildConfig> {
-  const config: Partial<Bun.BuildConfig> = {};
+function parseArgs(): NestedConfig {
+  const config: NestedConfig = {};
   const args = process.argv.slice(2);
 
   for (let i = 0; i < args.length; i++) {
@@ -62,7 +66,10 @@ function parseArgs(): Partial<Bun.BuildConfig> {
       continue;
     }
 
-    if (!arg.includes("=") && (i === args.length - 1 || args[i + 1]?.startsWith("--"))) {
+    if (
+      !arg.includes("=") &&
+      (i === args.length - 1 || args[i + 1]?.startsWith("--"))
+    ) {
       const key = toCamelCase(arg.slice(2));
       config[key] = true;
       continue;
@@ -82,8 +89,14 @@ function parseArgs(): Partial<Bun.BuildConfig> {
 
     if (key.includes(".")) {
       const [parentKey, childKey] = key.split(".");
-      config[parentKey] = config[parentKey] || {};
-      config[parentKey][childKey] = parseValue(value);
+      if (parentKey) {
+        if (!config[parentKey] || typeof config[parentKey] !== "object") {
+          config[parentKey] = {};
+        }
+        if (childKey) {
+          (config[parentKey] as NestedConfig)[childKey] = parseValue(value);
+        }
+      }
     } else {
       config[key] = parseValue(value);
     }
@@ -108,9 +121,38 @@ const formatFileSize = (bytes: number): string => {
 console.log("\n🚀 Starting build process...\n");
 
 const cliConfig = parseArgs();
-const outdir = cliConfig.outdir || path.join(process.cwd(), "dist");
+const outdir =
+  typeof cliConfig.outdir === "string"
+    ? cliConfig.outdir
+    : path.join(process.cwd(), "dist");
 
-if (existsSync(outdir)) {
+// Only allow spreading keys that Bun.build expects
+const bunBuildConfig: Partial<Bun.BuildConfig> = {};
+for (const key of [
+  "entrypoints",
+  "outdir",
+  "plugins",
+  "minify",
+  "target",
+  "sourcemap",
+  "define",
+  "format",
+  "splitting",
+  "packages",
+  "publicPath",
+  "env",
+  "conditions",
+  "external",
+  "banner",
+  "footer",
+]) {
+  if (key in cliConfig) {
+    // @ts-expect-error: dynamic assignment
+    bunBuildConfig[key] = cliConfig[key];
+  }
+}
+
+if (typeof outdir === "string" && existsSync(outdir)) {
   console.log(`🗑️ Cleaning previous build at ${outdir}`);
   await rm(outdir, { recursive: true, force: true });
 }
@@ -118,9 +160,13 @@ if (existsSync(outdir)) {
 const start = performance.now();
 
 const entrypoints = [...new Bun.Glob("**.html").scanSync("src")]
-  .map(a => path.resolve("src", a))
-  .filter(dir => !dir.includes("node_modules"));
-console.log(`📄 Found ${entrypoints.length} HTML ${entrypoints.length === 1 ? "file" : "files"} to process\n`);
+  .map((a) => path.resolve("src", a))
+  .filter((dir) => !dir.includes("node_modules"));
+console.log(
+  `📄 Found ${entrypoints.length} HTML ${
+    entrypoints.length === 1 ? "file" : "files"
+  } to process\n`
+);
 
 const result = await Bun.build({
   entrypoints,
@@ -132,12 +178,12 @@ const result = await Bun.build({
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
   },
-  ...cliConfig,
+  ...bunBuildConfig,
 });
 
 const end = performance.now();
 
-const outputTable = result.outputs.map(output => ({
+const outputTable = result.outputs.map((output) => ({
   File: path.relative(process.cwd(), output.path),
   Type: output.kind,
   Size: formatFileSize(output.size),

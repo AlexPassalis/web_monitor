@@ -1,0 +1,73 @@
+name: "build"
+description: "Build all the Docker compose containers"
+
+inputs:
+  GIT_CRYPT_KEY:
+    description: "GIT_CRYPT_KEY"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Unlock git-crypt files
+      uses: sliteteam/github-action-git-crypt-unlock@1.2.0
+      env:
+        GIT_CRYPT_KEY: ${{ inputs.GIT_CRYPT_KEY }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build db Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./services/db
+        file: ./services/db/Dockerfile
+        load: true
+        tags: web_monitor-db:latest
+        cache-from: type=gha,scope=db
+        cache-to: type=gha,mode=max,scope=db
+
+    - name: Build cache Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./services/cache
+        file: ./services/cache/Dockerfile
+        load: true
+        tags: web_monitor-cache:latest
+        cache-from: type=gha,scope=cache
+        cache-to: type=gha,mode=max,scope=cache
+
+    - name: Build backend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./services/backend
+        file: ./services/backend/Dockerfile
+        target: dev
+        load: true
+        tags: |
+          web_monitor-backend:latest
+          web_monitor-celery_beat:latest
+          web_monitor-celery_worker:latest
+        cache-from: type=gha,scope=backend
+        cache-to: type=gha,mode=max,scope=backend
+
+    - name: Build gateway Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./services/gateway
+        file: ./services/gateway/Dockerfile
+        load: true
+        tags: web_monitor-gateway:latest
+        cache-from: type=gha,scope=gateway
+        cache-to: type=gha,mode=max,scope=gateway
+
+    - name: Set up Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: 1.3.5
+
+    - name: Start containers
+      shell: bash
+      run: make start
+      env:
+        CI: true
