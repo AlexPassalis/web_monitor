@@ -63,7 +63,7 @@ install_frontend:
 
 start_frontend:
 	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host"
-	@if [ "$$CI" = "true" ]; then \
+	@if [ "$${CI:-false}" = "true" ]; then \
 		cd services/gateway/frontend && bun run dev & \
 	else \
 		cd services/gateway/frontend && bun run dev; \
@@ -114,7 +114,7 @@ migrate:
 
 check_missing_migrations:
 	@echo "==> Checking for missing migrations"
-	@bin/dockerize_backend uv run python manage.py makemigrations --check --dry-run
+	@bin/dockerize_backend uv run python manage.py makemigrations --check
 
 create_superuser:
 	@echo "==> Creating Django superuser"
