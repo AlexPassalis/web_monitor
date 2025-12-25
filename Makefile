@@ -63,10 +63,10 @@ install_frontend:
 
 start_frontend:
 	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host"
-	@if [ "$${CI:-false}" = "true" ]; then \
-		cd services/gateway/frontend && bun run dev & \
-	else \
+	@if [ "$${CI:-false}" != "true" ]; then \
 		cd services/gateway/frontend && bun run dev; \
+	else \
+		cd services/gateway/frontend && bun run dev & \
 	fi
 
 stop_frontend:
@@ -88,8 +88,13 @@ install_backend:
 
 lint_backend:
 	@echo "==> Linting inside \"${BACKEND_SERVICE_NAME}\" service"
-	@bin/dockerize_backend uv run ruff check .
-	@bin/dockerize_backend uv run ruff format --check .
+	@if [ "$${CI:-false}" != "true" ]; then \
+		bin/dockerize_backend uv run ruff check .; \
+		bin/dockerize_backend uv run ruff format --check .; \
+	else \
+		bin/dockerize_backend uv run ruff check --no-cache .; \
+		bin/dockerize_backend uv run ruff format --check --no-cache .; \
+	fi
 
 check_type_backend:
 	@echo "==> Checking types inside \"${BACKEND_SERVICE_NAME}\" service"
@@ -102,7 +107,11 @@ fix_backend:
 
 test_backend:
 	@echo "==> Running tests inside \"${BACKEND_SERVICE_NAME}\" service"
-	@bin/dockerize_backend env ENV=testing uv run pytest
+	@if [ "$${CI:-false}" != "true" ]; then \
+		bin/dockerize_backend env ENV=testing uv run pytest; \
+	else \
+		bin/dockerize_backend env ENV=testing uv run pytest -p no:cacheprovider; \
+	fi
 
 makemigrations:
 	@echo "==> Creating database migrations"
