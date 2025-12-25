@@ -115,11 +115,7 @@ test_backend:
 test_backend_coverage:
 	@echo "==> Running tests with coverage inside \"${BACKEND_SERVICE_NAME}\" service"
 	@if [ "$${CI:-false}" != "true" ]; then \
-		if tty -s; then \
-			docker compose exec --user root -it ${BACKEND_SERVICE_NAME} env ENV=testing uv run pytest --cov --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing; \
-		else \
-			docker compose exec --user root -T ${BACKEND_SERVICE_NAME} env ENV=testing uv run pytest --cov --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing; \
-		fi; \
+		bin/dockerize_backend env ENV=testing uv run pytest --cov --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing; \
 	else \
 		bin/dockerize_backend env ENV=testing uv run pytest --cov --cov-branch --cov-report=xml -p no:cacheprovider; \
 	fi
