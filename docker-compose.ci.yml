@@ -1,0 +1,9 @@
+services:
+  backend:
+    volumes: []
+
+  celery_beat:
+    volumes: []
+
+  celery_worker:
+    volumes: []

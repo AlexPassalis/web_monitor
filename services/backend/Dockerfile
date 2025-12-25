@@ -48,7 +48,7 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 RUN mkdir -p /home/appuser/.cache/uv && chown -R appuser:appuser /home/appuser/.cache
 # Make Playwright cache accessible to appuser
 # Make /app writable by appuser for coverage reports in CI
-RUN mkdir -p /app && chown -R appuser:appuser /app && chmod 755 /app
+RUN mkdir -p /app && chown -R appuser:appuser /app && chmod 777 /app
 RUN chmod 711 /root && \
     find /root/.cache -type d -exec chmod 755 {} + && \
     find /root/.cache -type f -executable -exec chmod 755 {} + && \
