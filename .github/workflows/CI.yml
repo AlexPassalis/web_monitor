@@ -23,6 +23,8 @@ jobs:
       - uses: ./.github/actions/build
         with:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+      - name: Install frontend dependencies
+        run: make install_frontend
       - name: Run code checks
         run: make check
 
@@ -47,5 +49,10 @@ jobs:
       - uses: ./.github/actions/build
         with:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-      - name: Run backend tests
-        run: make test
+      - name: Run backend tests with coverage
+        run: make test_coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./services/backend/coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}

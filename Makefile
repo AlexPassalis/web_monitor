@@ -6,7 +6,7 @@ COMPOSE_NAME = web_monitor
 FRONTEND_SERVICE_NAME = frontend
 BACKEND_SERVICE_NAME = backend
 
-.PHONY: default init start stop install lint check_type check fix test install_frontend start_frontend stop_frontend lint_frontend check_type_frontend install_backend lint_backend check_type_backend fix_backend test_backend makemigrations migrate create_superuser 
+.PHONY: default init start stop install lint check_type check fix test install_frontend start_frontend stop_frontend lint_frontend check_type_frontend install_backend lint_backend check_type_backend fix_backend test_backend test_coverage test_backend_coverage makemigrations migrate create_superuser 
 
 default: start
 
@@ -55,6 +55,9 @@ fix:
 
 test:
 	@${MAKE} test_backend
+
+test_coverage:
+	@${MAKE} test_backend_coverage
 
 # FRONTEND
 install_frontend:
@@ -107,10 +110,14 @@ fix_backend:
 
 test_backend:
 	@echo "==> Running tests inside \"${BACKEND_SERVICE_NAME}\" service"
+	@bin/dockerize_backend env ENV=testing uv run pytest
+
+test_backend_coverage:
+	@echo "==> Running tests with coverage inside \"${BACKEND_SERVICE_NAME}\" service"
 	@if [ "$${CI:-false}" != "true" ]; then \
-		bin/dockerize_backend env ENV=testing uv run pytest; \
+		bin/dockerize_backend env ENV=testing uv run pytest --cov --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing; \
 	else \
-		bin/dockerize_backend env ENV=testing uv run pytest -p no:cacheprovider; \
+		bin/dockerize_backend env ENV=testing uv run pytest --cov --cov-branch --cov-report=xml -p no:cacheprovider; \
 	fi
 
 makemigrations:
