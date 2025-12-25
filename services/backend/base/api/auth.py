@@ -5,6 +5,7 @@ import django.contrib.auth
 from base.models import User
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
+from django.middleware.csrf import get_token
 
 router_auth = Router(tags=['Authentication'])
 
@@ -99,10 +100,10 @@ def logout(request: HttpRequest) -> tuple[Literal[200], Response.Logout]:
     return 200, Response.Logout(message='Logout successful')
 
 
-@router_auth.get('/crsf', response={200: dict})
-def get_crsf(request: HttpRequest) -> tuple[Literal[200], dict]:
+@router_auth.get('/csrf', response={200: dict})
+def get_csrf(request: HttpRequest) -> tuple[Literal[200], dict]:
     """
     Get CSRF token
     """
 
-    return 200, {'csrfToken': request.META.get('CSRF_COOKIE')}
+    return 200, {'csrfToken': get_token(request)}

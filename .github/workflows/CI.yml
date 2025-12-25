@@ -15,7 +15,18 @@ jobs:
         with:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
 
-  check_migrations:
+  check:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build
+        with:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+      - name: Run code checks
+        run: make check
+
+  test_migrations:
     needs: build
     runs-on: ubuntu-latest
     steps:

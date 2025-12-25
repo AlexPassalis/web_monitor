@@ -60,9 +60,9 @@ USER appuser
 ENV ENV=development
 ENV ALLOWED_HOSTS=localhost,127.0.0.1,${HOST}
 ENV TRUSTED_ORIGINS=http://localhost:${PORT},http://localhost:3000
-# Prevent python from creating __pycache__ files.
+# Prevent python from creating __pycache__ files
 ENV PYTHONDONTWRITEBYTECODE=1
-# Default init command, is overriden for the worker and beat service in the docker-compose file.
+# Default init command, is overriden for the worker and beat service in the docker-compose file
 CMD ["sh", "-c", "uv run gunicorn config.wsgi:application --bind ${HOST}:${PORT} --reload"]
 
 
@@ -86,5 +86,5 @@ USER appuser
 ENV ENV=production
 ENV ALLOWED_HOSTS=
 ENV CORS_ALLOWED_ORIGINS=
-# Default init command, is overriden for the worker and beat service in the docker-compose file.
+# Default init command, is overriden for the worker and beat service in the docker-compose file
 CMD ["sh", "-c", "uv run gunicorn config.wsgi:application --bind ${HOST}:${PORT}"]
