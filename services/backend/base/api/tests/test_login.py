@@ -1,26 +1,23 @@
-from base.api.auth import router_auth
 from base.models import User
 import pytest
-from base.api.tests.conftest import TestClientWithSessions, DefaultTestValues
-
-client = TestClientWithSessions(router_auth)
+from base.api.tests.conftest import DefaultTestValues
 
 path = '/login'
 method = 'POST'
 
 
 @pytest.mark.django_db
-def test_login_success(get_user):
+def test_login_success(auth_client, get_user):
     """
     Test successful login with valid credentials
     """
     user = get_user
     json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 200
     assert response.json() == {'message': 'Login successful'}
-    assert client.session['_auth_user_id'] == str(user.pk)
+    assert auth_client.session['_auth_user_id'] == str(user.pk)
 
 
 @pytest.mark.django_db
@@ -37,12 +34,12 @@ def test_login_success(get_user):
         (DefaultTestValues.username, f' {DefaultTestValues.password} '),
     ],
 )
-def test_login_invalid_credentials(get_user, username, password):  # noqa: ARG001
+def test_login_invalid_credentials(auth_client, get_user, username, password):  # noqa: ARG001
     """
     Test login failures with invalid credentials
     """
     json_body = {'username': username, 'password': password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 401
     assert response.json() == {'detail': 'Invalid username or password'}
@@ -57,7 +54,7 @@ def test_login_invalid_credentials(get_user, username, password):  # noqa: ARG00
         (None, None),
     ],
 )
-def test_login_missing_fields(get_user, username, password):  # noqa: ARG001
+def test_login_missing_fields(auth_client, get_user, username, password):  # noqa: ARG001
     """
     Test login failures with missing required fields
     """
@@ -67,42 +64,42 @@ def test_login_missing_fields(get_user, username, password):  # noqa: ARG001
     if password is not None:
         json_body['password'] = password
 
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 422
 
 
 @pytest.mark.django_db
-def test_login_non_existent_user():
+def test_login_non_existent_user(auth_client):
     """
     Test that login fails for non-existent user
     """
     json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 401
     assert response.json()['detail'] == 'Invalid username or password'
 
 
 @pytest.mark.django_db
-def test_login_user_already_logged_in(get_user):
+def test_login_user_already_logged_in(auth_client, get_user):
     """
     Test that user can login again when already logged in
     """
     user = get_user
     json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
 
-    response_1 = client.request(method=method, path=path, json=json_body)
+    response_1 = auth_client.request(method=method, path=path, json=json_body)
     assert response_1.status_code == 200
 
-    response_2 = client.request(method=method, path=path, json=json_body)
+    response_2 = auth_client.request(method=method, path=path, json=json_body)
     assert response_2.status_code == 200
     assert response_2.json() == {'message': 'Login successful'}
-    assert client.session['_auth_user_id'] == str(user.pk)
+    assert auth_client.session['_auth_user_id'] == str(user.pk)
 
 
 @pytest.mark.django_db
-def test_login_inactive_user():
+def test_login_inactive_user(auth_client):
     """
     Test that inactive users cannot login
     """
@@ -114,7 +111,7 @@ def test_login_inactive_user():
     user.save()
 
     json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 401
     assert response.json()['detail'] == 'Invalid username or password'

@@ -3,7 +3,6 @@ from django.http import HttpRequest
 from typing import Literal
 import django.contrib.auth
 from base.models import User
-from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.middleware.csrf import get_token
 
@@ -51,8 +50,6 @@ def signup(
 
     try:
         user = User.objects.create_user(username=data.username, password=data.password)
-    except IntegrityError:
-        return 400, Response.Error(detail='Username already exists')
     except ValidationError as error:
         return 400, Response.Error(detail=error.messages)
 

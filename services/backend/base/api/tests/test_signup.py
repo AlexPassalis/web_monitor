@@ -1,9 +1,6 @@
-from base.api.auth import router_auth
 from base.models import User
 import pytest
-from base.api.tests.conftest import TestClientWithSessions, DefaultTestValues
-
-client = TestClientWithSessions(router_auth)
+from base.api.tests.conftest import DefaultTestValues
 
 path = '/signup'
 method = 'POST'
@@ -24,12 +21,12 @@ method = 'POST'
         'a' * 18,
     ],
 )
-def test_signup_username_valid(username):
+def test_signup_username_valid(auth_client, username):
     """
     Test valid username formats are accepted for signup
     """
     json_body = {'username': username, 'password': DefaultTestValues.password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 201
     assert response.json() == {'message': 'User created successfully'}
@@ -45,12 +42,12 @@ def test_signup_username_valid(username):
         ('a' * 19, 'Ensure this value has at most 18 characters'),
     ],
 )
-def test_signup_username_length(username, expected_error_fragment):
+def test_signup_username_length(auth_client, username, expected_error_fragment):
     """
     Test that usernames outside the 6-18 character range are rejected
     """
     json_body = {'username': username, 'password': DefaultTestValues.password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 400
     assert expected_error_fragment in str(response.json()['detail'])
@@ -69,12 +66,12 @@ def test_signup_username_length(username, expected_error_fragment):
         ' validuser ',
     ],
 )
-def test_signup_username_invalid_characters(username):
+def test_signup_username_invalid_characters(auth_client, username):
     """
     Test that usernames with invalid characters or whitespace are rejected
     """
     json_body = {'username': username, 'password': DefaultTestValues.password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
     invalid_chars_msg = (
         'Enter a valid username. This value may contain only letters, '
         'numbers, and @/./+/-/_ characters.'
@@ -85,16 +82,16 @@ def test_signup_username_invalid_characters(username):
 
 
 @pytest.mark.django_db
-def test_signup_username_case_sensitivity():
+def test_signup_username_case_sensitivity(auth_client):
     """
     Test that usernames are case-sensitive
     """
     json_body_1 = {'username': 'TestUser', 'password': DefaultTestValues.password}
-    response_1 = client.request(method=method, path=path, json=json_body_1)
+    response_1 = auth_client.request(method=method, path=path, json=json_body_1)
     assert response_1.status_code == 201
 
     json_body_2 = {'username': 'testuser', 'password': DefaultTestValues.password}
-    response_2 = client.request(method=method, path=path, json=json_body_2)
+    response_2 = auth_client.request(method=method, path=path, json=json_body_2)
     assert response_2.status_code == 201
 
     assert User.objects.filter(username='TestUser').exists()
@@ -103,12 +100,12 @@ def test_signup_username_case_sensitivity():
 
 
 @pytest.mark.django_db
-def test_signup_username_duplicate(get_user):  # noqa: ARG001
+def test_signup_username_duplicate(auth_client, get_user):  # noqa: ARG001
     """
     Test that duplicate usernames are rejected
     """
     json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 400
     assert 'A user with that username already exists.' in str(response.json()['detail'])
@@ -127,24 +124,24 @@ def test_signup_username_duplicate(get_user):  # noqa: ARG001
         '!@#$%^&*()',
     ],
 )
-def test_signup_password_valid(password):
+def test_signup_password_valid(auth_client, password):
     """
     Test valid password formats are accepted for signup
     """
     json_body = {'username': DefaultTestValues.username, 'password': password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 201
     assert response.json() == {'message': 'User created successfully'}
 
 
 @pytest.mark.django_db
-def test_signup_password_hashed():
+def test_signup_password_hashed(auth_client):
     """
     Test that passwords are stored hashed and not in plaintext
     """
     json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
     assert response.status_code == 201
 
     user = User.objects.get(username=DefaultTestValues.username)
@@ -154,16 +151,16 @@ def test_signup_password_hashed():
 
 
 @pytest.mark.django_db
-def test_signup_user_logged_in():
+def test_signup_user_logged_in(auth_client):
     """
     Test that user is automatically logged in after successful signup
     """
     json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
     assert response.status_code == 201
 
     user = User.objects.get(username=DefaultTestValues.username)
-    assert client.session['_auth_user_id'] == str(user.pk)
+    assert auth_client.session['_auth_user_id'] == str(user.pk)
 
 
 @pytest.mark.django_db
@@ -189,12 +186,12 @@ def test_signup_user_logged_in():
         (DefaultTestValues.username, ['The password is too similar to the username.']),
     ],
 )
-def test_signup_password_invalid(password, expected_errors):
+def test_signup_password_invalid(auth_client, password, expected_errors):
     """
     Test invalid password formats are rejected for signup
     """
     json_body = {'username': DefaultTestValues.username, 'password': password}
-    response = client.request(method=method, path=path, json=json_body)
+    response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 400
     assert response.json()['detail'] == expected_errors

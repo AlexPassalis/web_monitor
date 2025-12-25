@@ -1,20 +1,17 @@
-from base.api.auth import router_auth
 import pytest
-from base.api.tests.conftest import TestClientWithSessions, DefaultTestValues
+from base.api.tests.conftest import DefaultTestValues
 from django.test import Client
-
-client = TestClientWithSessions(router_auth)
 
 path = '/csrf'
 method = 'GET'
 
 
 @pytest.mark.django_db
-def test_get_csrf_token():
+def test_get_csrf_token(auth_client):
     """
     Test getting CSRF token successfully
     """
-    response = client.request(method=method, path=path)
+    response = auth_client.request(method=method, path=path)
 
     assert response.status_code == 200
     assert 'csrfToken' in response.json()
@@ -24,15 +21,15 @@ def test_get_csrf_token():
 
 
 @pytest.mark.django_db
-def test_csrf_tokens_different_between_requests():
+def test_csrf_tokens_different_between_requests(auth_client):
     """
     Test that CSRF tokens are regenerated on each request
     """
-    response_1 = client.request(method=method, path=path)
+    response_1 = auth_client.request(method=method, path=path)
     token_1 = response_1.json()['csrfToken']
     assert response_1.status_code == 200
 
-    response_2 = client.request(method=method, path=path)
+    response_2 = auth_client.request(method=method, path=path)
     token_2 = response_2.json()['csrfToken']
     assert response_2.status_code == 200
 

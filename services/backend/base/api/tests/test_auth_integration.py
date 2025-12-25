@@ -1,14 +1,11 @@
-from base.api.auth import router_auth
 from base.models import User
 import pytest
-from base.api.tests.conftest import TestClientWithSessions, DefaultTestValues
+from base.api.tests.conftest import DefaultTestValues
 from django.test import Client
-
-auth_client = TestClientWithSessions(router_auth)
 
 
 @pytest.mark.django_db
-def test_complete_user_journey():
+def test_complete_user_journey(auth_client):
     """
     Test complete user journey: Signup → Logout → Login
     """
@@ -79,12 +76,10 @@ def test_session_persistence_across_requests(get_user):
 
 
 @pytest.mark.django_db
-def test_failed_login_does_not_corrupt_session():
+def test_failed_login_does_not_corrupt_session(auth_client):
     """
     Test that failed login doesn't corrupt session for subsequent login
     """
-    auth_client.session.flush()
-
     failed_login_response = auth_client.request(
         method='POST',
         path='/login',

@@ -12,10 +12,13 @@ class UserManager(BaseUserManager):
         Create and save a user with password and username validation
         """
 
+        email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
         user.full_clean(exclude=['password'])
         validate_password(password, user)
-        return super()._create_user(username, email, password, **extra_fields)  # type: ignore[misc]
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
 
 class User(AbstractUser):
