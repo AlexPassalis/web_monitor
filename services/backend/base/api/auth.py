@@ -2,17 +2,11 @@ from ninja import Router, Schema
 from django.http import HttpRequest
 from typing import Literal
 import django.contrib.auth
-from django.contrib.auth.models import User
-from django import forms
+from base.models import User
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 
 router_auth = Router(tags=['Authentication'])
-
-
-class UserSignupForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['username', 'password']
 
 
 class Request:
@@ -54,14 +48,12 @@ def signup(
     Create a new user account
     """
 
-    form = UserSignupForm({'username': data.username, 'password': data.password})
-    if not form.is_valid():
-        return 400, Response.Error(detail=form.errors.get_json_data())
-
     try:
         user = User.objects.create_user(username=data.username, password=data.password)
     except IntegrityError:
         return 400, Response.Error(detail='Username already exists')
+    except ValidationError as error:
+        return 400, Response.Error(detail=error.messages)
 
     django.contrib.auth.login(request, user)
 
