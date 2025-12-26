@@ -62,11 +62,7 @@ test_coverage:
 # BACKEND SERVICES
 start_backend:
 	@echo "==> Starting backend services"
-	@if [ "$${CI:-false}" = "true" ]; then \
-		docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d; \
-	else \
-		docker compose -f docker-compose.yml up -d; \
-	fi
+	@docker compose -p ${COMPOSE_NAME} -f docker-compose.yml up -d
 
 stop_backend:
 	@echo "==> Stopping backend services"
