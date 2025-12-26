@@ -1,5 +1,46 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser, UserManager as BaseUserManager
+from django.core.validators import MinLengthValidator, MaxLengthValidator
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.conf import settings
+
+
+class UserManager(BaseUserManager):
+    def _create_user(self, username, email, password, **extra_fields):
+        """
+        Create and save a user with password and username validation
+        """
+
+        email = self.normalize_email(email)
+        user = self.model(username=username, email=email, **extra_fields)
+        user.full_clean(exclude=['password'])
+        validate_password(password, user)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+
+class User(AbstractUser):
+    """
+    User model
+    """
+
+    objects: UserManager = UserManager()  # type: ignore[misc]
+
+    username = models.CharField(
+        max_length=18,
+        unique=True,
+        validators=[
+            UnicodeUsernameValidator(),
+            MinLengthValidator(6),
+            MaxLengthValidator(18),
+        ],
+        help_text='Required. 6-18 characters. Letters, digits and @/./+/-/_ only.',
+        error_messages={
+            'unique': 'A user with that username already exists.',
+        },
+    )
 
 
 class Webpage(models.Model):
@@ -16,21 +57,21 @@ class Webpage(models.Model):
     )
 
     minute = models.ManyToManyField(
-        User,
+        settings.AUTH_USER_MODEL,
         related_name='tracked_webpage_min',
         blank=True,
         help_text='Users tracking this webpage every 1 minute',
     )
 
     hour = models.ManyToManyField(
-        User,
+        settings.AUTH_USER_MODEL,
         related_name='tracked_webpage_hour',
         blank=True,
         help_text='Users tracking this webpage every 1 hour',
     )
 
     day = models.ManyToManyField(
-        User,
+        settings.AUTH_USER_MODEL,
         related_name='tracked_webpage_day',
         blank=True,
         help_text='Users tracking this webpage every 1 day',
@@ -40,7 +81,7 @@ class Webpage(models.Model):
         """
         Retrieves the most recent screenshot of the tracked webpage
         """
-        return self.screenshots.first()
+        return self.screenshots.first()  # type: ignore[attr-defined]
 
 
 class WebpageScreenshot(models.Model):

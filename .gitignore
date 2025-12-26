@@ -10,6 +10,9 @@ __pycache__/
 celerybeat-schedule
 celerybeat-schedule-shm
 celerybeat-schedule-wal
+htmlcov/
+coverage.xml
+.coverage
 
 # services/gateway/frontend
 node_modules/

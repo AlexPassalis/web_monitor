@@ -2,7 +2,7 @@ from ninja import Router, Schema
 from ninja.security import django_auth
 from pydantic import HttpUrl
 from typing import Literal
-from base.request import AuthenticatedRequest
+from django.http import HttpRequest
 from base.models import Webpage
 from base.tasks.create_initial_webpagescreenshot import create_initial_webpagescreenshot
 
@@ -36,15 +36,17 @@ class UnauthorizedResponse(Schema):
     },
 )
 def add_webpage(
-    request: AuthenticatedRequest,
+    request: HttpRequest,
     data: TrackRequest,
 ) -> (
     tuple[Literal[401], UnauthorizedResponse]
     | tuple[Literal[422], ValidationErrorResponse]
     | tuple[Literal[201], TrackResponse]
 ):
+    assert request.user.is_authenticated
+
+    user = request.user
     url = str(data.url)
-    user = request.auth
     interval = data.interval
 
     tracked_webpage, created = Webpage.objects.get_or_create(url=url)

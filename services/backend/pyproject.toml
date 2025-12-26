@@ -24,6 +24,7 @@ dev = [
     "ruff~=0.14.0",
     "mypy~=1.18.2",
     "pytest~=8.4.2",
+    "pytest-cov~=7.0.0",
     "pytest-django~=4.11.1",
     "celery-types~=0.23.0",
 ]
@@ -50,6 +51,12 @@ python_files = ["test_*.py"]
 filterwarnings = [
     "ignore::pydantic.warnings.PydanticDeprecatedSince20",
 ]
+
+[tool.coverage.run]
+data_file = "/tmp/.coverage"
+
+[tool.coverage.xml]
+output = "/tmp/coverage.xml"
 
 [tool.mypy]
 python_version = "3.13"
