@@ -55,6 +55,9 @@ filterwarnings = [
 [tool.coverage.run]
 data_file = "/tmp/.coverage"
 
+[tool.coverage.xml]
+output = "/tmp/coverage.xml"
+
 [tool.mypy]
 python_version = "3.13"
 plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
