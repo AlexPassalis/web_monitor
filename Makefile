@@ -139,7 +139,7 @@ start_frontend:
 
 stop_frontend:
 	@echo "==> Stopping \"${FRONTEND_SERVICE_NAME}\" service on host"
-	@pkill -f "bun run dev" || true
+	@pkill -f "bun.*src/index.ts" || true
 
 lint_frontend:
 	@echo "==> Generating OpenAPI types for frontend"

@@ -11,7 +11,7 @@ test.describe("Authentication", () => {
     await expect(page.locator("button#button_toggle_mode")).toBeVisible();
 
     const username = faker.internet.username();
-    const password = faker.internet.password({ length: 12 });
+    const password = faker.internet.password({ length: 16 });
     await page.fill("#input_username", username);
     await page.fill("#input_password", password);
     await page.click("#button_submit");
