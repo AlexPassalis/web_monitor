@@ -16,6 +16,12 @@ test.describe("Authentication", () => {
     await page.fill("#input_password", password);
     await page.click("#button_submit");
 
+    const cookies = await page.context().cookies();
+    const session_cookie = cookies.find(
+      (cookie) => cookie.name === "sessionid"
+    );
+    expect(session_cookie).toBeDefined();
+
     await expect(page).toHaveURL("/");
   });
 });

@@ -5,27 +5,27 @@
     "": {
       "name": "bun-react-template",
       "dependencies": {
-        "bun-plugin-tailwind": "^0.1.2",
-        "openapi-fetch": "^0.15.0",
-        "react": "^19",
-        "react-dom": "^19",
-        "react-router-dom": "^7.11.0",
-        "tailwindcss": "^4.1.11",
+        "bun-plugin-tailwind": "~0.1.2",
+        "openapi-fetch": "~0.15.0",
+        "react": "~19.2.3",
+        "react-dom": "~19.2.3",
+        "react-router-dom": "~7.11.0",
+        "tailwindcss": "~4.1.11",
       },
       "devDependencies": {
-        "@eslint/js": "^9.39.2",
-        "@faker-js/faker": "^10.1.0",
-        "@playwright/test": "^1.57.0",
-        "@types/bun": "latest",
-        "@types/react": "^19",
-        "@types/react-dom": "^19",
-        "eslint": "^9.39.2",
-        "eslint-plugin-react": "^7.37.5",
-        "globals": "^16.5.0",
-        "jiti": "^2.6.1",
-        "openapi-typescript": "^7.10.1",
-        "typescript": "^5.9.3",
-        "typescript-eslint": "^8.50.0",
+        "@eslint/js": "~9.39.2",
+        "@faker-js/faker": "~10.1.0",
+        "@playwright/test": "~1.55.0",
+        "@types/bun": "~1.3.5",
+        "@types/react": "~19.2.3",
+        "@types/react-dom": "~19.2.3",
+        "eslint": "~9.39.2",
+        "eslint-plugin-react": "~7.37.5",
+        "globals": "~16.5.0",
+        "jiti": "~2.6.1",
+        "openapi-typescript": "~7.10.1",
+        "typescript": "~5.9.3",
+        "typescript-eslint": "~8.50.0",
       },
     },
   },
@@ -84,7 +84,7 @@
 
     "@oven/bun-windows-x64-baseline": ["@oven/bun-windows-x64-baseline@1.3.5", "", { "os": "win32", "cpu": "x64" }, "sha512-rtVQB9/1XK8FWJgFtsOthbPifRMYypgJwxu+pK3NHx8WvFKmq7HcPDqNr8xLzGULjQEO7eAo2aOZfONOwYz+5g=="],
 
-    "@playwright/test": ["@playwright/test@1.57.0", "", { "dependencies": { "playwright": "1.57.0" }, "bin": { "playwright": "cli.js" } }, "sha512-6TyEnHgd6SArQO8UO2OMTxshln3QMWBtPGrOCgs3wVEmQmwyuNtB10IZMfmYDE0riwNR1cu4q+pPcxMVtaG3TA=="],
+    "@playwright/test": ["@playwright/test@1.55.1", "", { "dependencies": { "playwright": "1.55.1" }, "bin": { "playwright": "cli.js" } }, "sha512-IVAh/nOJaw6W9g+RJVlIQJ6gSiER+ae6mKQ5CX1bERzQgbC1VSeBlwdvczT7pxb0GWiyrxH4TGKbMfDb4Sq/ig=="],
 
     "@redocly/ajv": ["@redocly/ajv@8.17.1", "", { "dependencies": { "fast-deep-equal": "^3.1.3", "fast-uri": "^3.0.1", "json-schema-traverse": "^1.0.0", "require-from-string": "^2.0.2" } }, "sha512-EDtsGZS964mf9zAUXAl9Ew16eYbeyAFWhsPr0fX6oaJxgd8rApYlPBf0joyhnUHz88WxrigyFtTaqqzXNzPgqw=="],
 
@@ -446,9 +446,9 @@
 
     "picomatch": ["picomatch@4.0.3", "", {}, "sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q=="],
 
-    "playwright": ["playwright@1.57.0", "", { "dependencies": { "playwright-core": "1.57.0" }, "optionalDependencies": { "fsevents": "2.3.2" }, "bin": { "playwright": "cli.js" } }, "sha512-ilYQj1s8sr2ppEJ2YVadYBN0Mb3mdo9J0wQ+UuDhzYqURwSoW4n1Xs5vs7ORwgDGmyEh33tRMeS8KhdkMoLXQw=="],
+    "playwright": ["playwright@1.55.1", "", { "dependencies": { "playwright-core": "1.55.1" }, "optionalDependencies": { "fsevents": "2.3.2" }, "bin": { "playwright": "cli.js" } }, "sha512-cJW4Xd/G3v5ovXtJJ52MAOclqeac9S/aGGgRzLabuF8TnIb6xHvMzKIa6JmrRzUkeXJgfL1MhukP0NK6l39h3A=="],
 
-    "playwright-core": ["playwright-core@1.57.0", "", { "bin": { "playwright-core": "cli.js" } }, "sha512-agTcKlMw/mjBWOnD6kFZttAAGHgi/Nw0CZ2o6JqWSbMlI219lAFLZZCyqByTsvVAJq5XA5H8cA6PrvBRpBWEuQ=="],
+    "playwright-core": ["playwright-core@1.55.1", "", { "bin": { "playwright-core": "cli.js" } }, "sha512-Z6Mh9mkwX+zxSlHqdr5AOcJnfp+xUWLCt9uKV18fhzA8eyxUd8NUWzAjxUh55RZKSYwDGX0cfaySdhZJGMoJ+w=="],
 
     "pluralize": ["pluralize@8.0.0", "", {}, "sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA=="],
 
