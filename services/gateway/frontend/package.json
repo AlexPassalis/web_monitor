@@ -8,13 +8,17 @@
   "type": "module",
   "scripts": {
     "lint": "bunx eslint src --ext .ts,.tsx",
+    "fix": "bunx eslint src --ext .ts,.tsx --fix",
     "check": "bunx tsc --noEmit",
+    "openapi": "npx openapi-typescript http://localhost:8000/api/openapi.json -o ./src/lib/openapi/schema.d.ts",
+    "test": "bunx playwright test",
     "dev": "bun --hot src/index.ts",
     "build": "bun run build.ts",
     "start": "bun src/index.ts"
   },
   "dependencies": {
     "bun-plugin-tailwind": "^0.1.2",
+    "openapi-fetch": "^0.15.0",
     "react": "^19",
     "react-dom": "^19",
     "react-router-dom": "^7.11.0",
@@ -22,6 +26,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@faker-js/faker": "^10.1.0",
+    "@playwright/test": "^1.57.0",
     "@types/bun": "latest",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -29,6 +35,8 @@
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.5.0",
     "jiti": "^2.6.1",
+    "openapi-typescript": "^7.10.1",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.50.0"
   }
 }

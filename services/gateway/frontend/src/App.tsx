@@ -1,29 +1,31 @@
-import "./index.css";
+import "@/index.css"
 
-import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createRoot } from "react-dom/client"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 
-import HomePage from "@/app/HomePage";
-import CatchAllPage from "@/app/CatchAllPage";
+import Auth from "@/app/Auth"
+import Home from "@/app/Home"
+import Fallback from "@/app/Fallback"
 
-function Frontend() {
+function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="*" element={<CatchAllPage />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/" element={<Home />} />
+        <Route path="*" element={<Fallback />} />
       </Routes>
     </BrowserRouter>
-  );
+  )
 }
 
 function start() {
-  const root = createRoot(document.getElementById("root")!);
-  root.render(<Frontend />);
+  const root = createRoot(document.getElementById("root")!)
+  root.render(<App />)
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", start);
+  document.addEventListener("DOMContentLoaded", start)
 } else {
-  start();
+  start()
 }
