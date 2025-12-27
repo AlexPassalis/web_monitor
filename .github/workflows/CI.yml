@@ -72,6 +72,8 @@ jobs:
       - uses: ./.github/actions/build
         with:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+      - name: Stop frontend to let Playwright manage it
+        run: make stop_frontend
       - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
         run: make install_frontend
