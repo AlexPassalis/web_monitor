@@ -17,6 +17,6 @@ export default defineConfig({
   webServer: {
     command: "bun run dev",
     url: base_url,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
   },
 });
