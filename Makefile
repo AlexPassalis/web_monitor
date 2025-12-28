@@ -73,7 +73,7 @@ install_backend:
 
 start_backend:
 	@echo "==> Starting backend services"
-	@docker compose -p ${COMPOSE_NAME} -f docker-compose.yml up -d
+	@docker compose -p ${COMPOSE_NAME} -f docker-compose.yml up -d --wait
 
 stop_backend:
 	@echo "==> Stopping backend services"
