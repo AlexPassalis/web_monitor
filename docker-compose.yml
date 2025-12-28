@@ -181,7 +181,7 @@ services:
     healthcheck:
       start_period: 10s
       test:
-        ["CMD-SHELL", "curl -kf https://localhost/nginx | grep ok || exit 1"]
+        ["CMD-SHELL", "curl -kf https://localhost/health | grep ok || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 2
