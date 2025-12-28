@@ -130,10 +130,9 @@ install_frontend:
 	@bin/in_frontend bun install
 
 start_frontend:
+	@$(MAKE) stop_frontend
 	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host"
 	@if [ "$${CI:-false}" = "true" ]; then \
-		sudo fuser -k 3000/tcp || true; \
-		sleep 1; \
 		bin/in_frontend bun run dev & \
 	else \
 		bin/in_frontend bun run dev; \
