@@ -21,7 +21,9 @@ start:
 		bin/create_minio_volume; \
 		bin/create_docker_network; \
 		${MAKE} start_backend; \
-		${MAKE} start_frontend; \
+		if [ "$${CI:-false}" != "true" ]; then \
+			${MAKE} start_frontend; \
+		fi \
 	else \
 		echo "Docker compose \"${COMPOSE_NAME}\" is already running."; \
 	fi
@@ -130,17 +132,12 @@ install_frontend:
 	@bin/in_frontend bun install
 
 start_frontend:
-	@$(MAKE) stop_frontend
 	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host"
-	@if [ "$${CI:-false}" = "true" ]; then \
-		bin/in_frontend bun run dev & \
-	else \
-		bin/in_frontend bun run dev; \
-	fi
+	@bin/in_frontend bun run dev
 
 stop_frontend:
 	@echo "==> Stopping \"${FRONTEND_SERVICE_NAME}\" service on host"
-	@-pkill -f "bun.*src/index.ts"
+	@pkill -f "bun.*src/index.ts" || true
 
 lint_frontend:
 	@echo "==> Generating OpenAPI types for frontend"
