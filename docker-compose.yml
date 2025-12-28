@@ -26,15 +26,15 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
+      start_period: 10s
       test:
         [
           "CMD-SHELL",
           "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} && PGPASSWORD=$${POSTGRES_PASSWORD} psql -U $${POSTGRES_USER} -d $${POSTGRES_DB} -c 'SELECT 1'",
         ]
-      interval: 5s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 2
 
   cache:
     container_name: cache
@@ -49,11 +49,11 @@ services:
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
-      interval: 5s
-      timeout: 10s
-      retries: 5
       start_period: 10s
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
 
   minio:
     container_name: minio
@@ -71,11 +71,11 @@ services:
       - "9000:9000"
       - "9001:9001"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 5s
-      timeout: 10s
-      retries: 5
       start_period: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
 
   backend:
     depends_on:
@@ -101,6 +101,12 @@ services:
       - network_web_monitor
     ports:
       - "8000:8000"
+    healthcheck:
+      start_period: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
 
   celery_beat:
     depends_on:
@@ -148,11 +154,21 @@ services:
       - /app/.venv
     networks:
       - network_web_monitor
+    healthcheck:
+      start_period: 10s
+      test:
+        [
+          "CMD-SHELL",
+          "uv run celery -A config inspect ping -d celery@$${HOSTNAME}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 2
 
   gateway:
     depends_on:
       backend:
-        condition: service_started
+        condition: service_healthy
     container_name: gateway
     build:
       context: ./services/gateway
@@ -162,3 +178,12 @@ services:
       - network_web_monitor
     ports:
       - "443:443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      start_period: 10s
+      test:
+        ["CMD-SHELL", "curl -kf https://localhost/health | grep ok || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 2

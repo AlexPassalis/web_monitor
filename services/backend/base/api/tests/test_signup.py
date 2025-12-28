@@ -117,7 +117,7 @@ def test_signup_username_duplicate(auth_client, get_user):  # noqa: ARG001
     [
         'ValidPass123',
         'P@ssw0rd!',
-        'a' * 128,
+        'a' * 32,
         'パスワード123',
         'test pass 123',
         'MyP@ssw0rd',
@@ -178,6 +178,7 @@ def test_signup_user_logged_in(auth_client):
                 'This password is entirely numeric.',
             ],
         ),
+        ('a' * 65, ['This password is too long. It must contain at most 64 characters.']),
         ('password', ['This password is too common.']),
         ('12345678', ['This password is too common.', 'This password is entirely numeric.']),
         ('qwerty123', ['This password is too common.']),

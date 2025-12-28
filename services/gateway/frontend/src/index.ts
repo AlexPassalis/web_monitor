@@ -1,5 +1,5 @@
-import { serve } from "bun";
-import index from "./index.html";
+import { serve } from "bun"
+import index from "@/index.html"
 
 const server = serve({
   port: 3000,
@@ -10,6 +10,6 @@ const server = serve({
     hmr: true,
     console: true,
   },
-});
+})
 
-console.info(`🚀 bun server running at ${server.url}`);
+console.info(`🚀 bun server running at ${server.url}`)

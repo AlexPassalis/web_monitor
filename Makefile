@@ -6,7 +6,7 @@ COMPOSE_NAME = web_monitor
 FRONTEND_SERVICE_NAME = frontend
 BACKEND_SERVICE_NAME = backend
 
-.PHONY: default init start stop install lint check_type check fix test install_frontend start_frontend stop_frontend lint_frontend check_type_frontend start_backend stop_backend install_backend lint_backend check_type_backend fix_backend test_backend test_coverage test_backend_coverage makemigrations migrate create_superuser 
+.PHONY: default init start stop install lint check_type check fix test test_coverage show_git_crypt install_backend start_backend stop_backend lint_backend fix_backend check_type_backend test_backend test_backend_coverage makemigrations migrate check_missing_migrations create_superuser install_frontend start_frontend stop_frontend lint_frontend fix_frontend check_type_frontend test_frontend 
 
 default: start
 
@@ -21,7 +21,9 @@ start:
 		bin/create_minio_volume; \
 		bin/create_docker_network; \
 		${MAKE} start_backend; \
-		${MAKE} start_frontend; \
+		if [ "$${CI:-false}" != "true" ]; then \
+			${MAKE} start_frontend; \
+		fi \
 	else \
 		echo "Docker compose \"${COMPOSE_NAME}\" is already running."; \
 	fi
@@ -52,51 +54,30 @@ check:
 
 fix:
 	@${MAKE} fix_backend
+	@${MAKE} fix_frontend
 
 test:
 	@${MAKE} test_backend
+	@${MAKE} test_frontend
 
 test_coverage:
 	@${MAKE} test_backend_coverage
 
-# BACKEND SERVICES
-start_backend:
-	@echo "==> Starting backend services"
-	@docker compose -p ${COMPOSE_NAME} -f docker-compose.yml up -d
-
-stop_backend:
-	@echo "==> Stopping backend services"
-	@docker compose -p ${COMPOSE_NAME} down
-
-# FRONTEND
-install_frontend:
-	@echo "==> Installing frontend dependencies"
-	@cd services/gateway/frontend && bun install
-
-start_frontend:
-	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host"
-	@if [ "$${CI:-false}" != "true" ]; then \
-		cd services/gateway/frontend && bun run dev; \
-	else \
-		cd services/gateway/frontend && bun run dev & \
-	fi
-
-stop_frontend:
-	@echo "==> Stopping \"${FRONTEND_SERVICE_NAME}\" service on host"
-	@pkill -f "bun run dev" || true
-
-lint_frontend:
-	@echo "==> Linting frontend on host"
-	@cd services/gateway/frontend && bun run lint
-
-check_type_frontend:
-	@echo "==> Checking types in frontend on host"
-	@cd services/gateway/frontend && bun run check
+show_git_crypt:
+	git-crypt status -e
 
 # BACKEND
 install_backend:
 	@echo "==> Installing backend dependencies"
 	@cd services/backend && uv sync --extra dev
+
+start_backend:
+	@echo "==> Starting backend services"
+	@docker compose -p ${COMPOSE_NAME} -f docker-compose.yml up -d --wait
+
+stop_backend:
+	@echo "==> Stopping backend services"
+	@docker compose -p ${COMPOSE_NAME} down
 
 lint_backend:
 	@echo "==> Linting inside \"${BACKEND_SERVICE_NAME}\" service"
@@ -108,14 +89,14 @@ lint_backend:
 		bin/dockerize_backend uv run ruff format --check --no-cache .; \
 	fi
 
-check_type_backend:
-	@echo "==> Checking types inside \"${BACKEND_SERVICE_NAME}\" service"
-	@bin/dockerize_backend uv run mypy .
-
 fix_backend:
 	@echo "==> Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service"
 	@bin/dockerize_backend uv run ruff format .
 	@bin/dockerize_backend uv run ruff check --fix .
+
+check_type_backend:
+	@echo "==> Checking types inside \"${BACKEND_SERVICE_NAME}\" service"
+	@bin/dockerize_backend uv run mypy .
 
 test_backend:
 	@echo "==> Running tests inside \"${BACKEND_SERVICE_NAME}\" service"
@@ -145,5 +126,33 @@ create_superuser:
 	@echo "==> Creating Django superuser"
 	@bin/dockerize_backend uv run python manage.py createsuperuser
 
-show_git_crypt:
-	git-crypt status -e
+# FRONTEND
+install_frontend:
+	@echo "==> Installing frontend dependencies"
+	@bin/in_frontend bun install
+
+start_frontend:
+	@echo "==> Starting \"${FRONTEND_SERVICE_NAME}\" service on host"
+	@bin/in_frontend bun run dev
+
+stop_frontend:
+	@echo "==> Stopping \"${FRONTEND_SERVICE_NAME}\" service on host"
+	@pkill -f "bun.*src/index.ts" || true
+
+lint_frontend:
+	@echo "==> Generating OpenAPI types for frontend"
+	@bin/in_frontend bun run openapi
+	@echo "==> Linting frontend on host"
+	@bin/in_frontend bun run lint
+
+fix_frontend:
+	@echo "==> Linting and formatting frontend on host"
+	@bin/in_frontend bun run fix
+
+check_type_frontend:
+	@echo "==> Checking types in frontend on host"
+	@bin/in_frontend bun run check
+
+test_frontend:
+	@echo "==> Running tests in frontend on host"
+	@bin/in_frontend bun run test

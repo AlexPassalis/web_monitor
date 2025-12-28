@@ -16,3 +16,4 @@ coverage.xml
 
 # services/gateway/frontend
 node_modules/
+services/gateway/frontend/tests/results/
