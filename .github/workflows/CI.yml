@@ -34,20 +34,6 @@ jobs:
       - name: Run code checks
         run: make check
 
-  test_migrations:
-    needs: build
-    timeout-minutes: 20
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/build
-        with:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-      - name: Check for missing migrations
-        run: make check_missing_migrations
-      - name: Apply migrations
-        run: make migrate
-
   test_backend:
     needs: build
     timeout-minutes: 20
@@ -67,7 +53,7 @@ jobs:
           files: ./services/backend/coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  test_frontend:
+  test_migrations_and_frontend:
     needs: build
     timeout-minutes: 20
     runs-on: ubuntu-latest
@@ -76,6 +62,10 @@ jobs:
       - uses: ./.github/actions/build
         with:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+      - name: Check for missing migrations
+        run: make check_missing_migrations
+      - name: Apply migrations
+        run: make migrate
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -84,7 +74,7 @@ jobs:
         run: make install_frontend
       - name: Install Playwright Browsers
         run: bin/in_frontend bunx playwright install chromium --with-deps
-      - name: Run Playwright tests
+      - name: Run frontend tests
         run: make test_frontend
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
