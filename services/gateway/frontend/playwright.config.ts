@@ -1,13 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const base_url = "http://localhost:3000";
-
 export default defineConfig({
   testDir: "./tests",
   outputDir: "./tests/results",
   fullyParallel: true,
   use: {
-    baseURL: base_url,
+    baseURL: "https://localhost",
     ignoreHTTPSErrors: true,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
@@ -16,7 +14,7 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: "bun run dev",
-    url: base_url,
-    reuseExistingServer: !process.env.CI,
+    url: "http://localhost:3000",
+    reuseExistingServer: true,
   },
 });

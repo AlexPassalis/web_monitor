@@ -132,7 +132,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'base.validators.MaximumLengthValidator',
         'OPTIONS': {
-            'max_length': 32,
+            'max_length': 64,
         },
     },
     {

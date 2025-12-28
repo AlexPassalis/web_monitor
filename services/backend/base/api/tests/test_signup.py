@@ -178,7 +178,7 @@ def test_signup_user_logged_in(auth_client):
                 'This password is entirely numeric.',
             ],
         ),
-        ('a' * 33, ['This password is too long. It must contain at most 32 characters.']),
+        ('a' * 65, ['This password is too long. It must contain at most 64 characters.']),
         ('password', ['This password is too common.']),
         ('12345678', ['This password is too common.', 'This password is entirely numeric.']),
         ('qwerty123', ['This password is too common.']),
