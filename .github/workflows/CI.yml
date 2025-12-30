@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    name: build
     timeout-minutes: 20
     runs-on: ubuntu-latest
     env:
@@ -17,6 +18,7 @@ jobs:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
 
   check:
+    name: check
     needs: build
     timeout-minutes: 20
     runs-on: ubuntu-latest
@@ -37,6 +39,7 @@ jobs:
         run: make check
 
   test_backend:
+    name: test backend
     needs: build
     timeout-minutes: 20
     runs-on: ubuntu-latest
@@ -58,6 +61,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   test_migrations_and_frontend:
+    name: test migrations and frontend
     needs: build
     timeout-minutes: 20
     runs-on: ubuntu-latest

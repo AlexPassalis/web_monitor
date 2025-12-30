@@ -6,4 +6,4 @@ FROM base AS dev
 COPY nginx-development.conf /etc/nginx/nginx.conf
 
 FROM base AS prod
-COPY nginx-production.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
