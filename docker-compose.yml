@@ -55,8 +55,8 @@ services:
       timeout: 5s
       retries: 2
 
-  minio:
-    container_name: minio
+  s3:
+    container_name: s3
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
@@ -83,7 +83,7 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
-      minio:
+      s3:
         condition: service_healthy
     container_name: backend
     build:
@@ -114,7 +114,7 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
-      minio:
+      s3:
         condition: service_healthy
     container_name: celery_beat
     build:
@@ -137,7 +137,7 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
-      minio:
+      s3:
         condition: service_healthy
     container_name: celery_worker
     build:
@@ -174,6 +174,8 @@ services:
       context: ./services/gateway
       dockerfile: Dockerfile
     restart: always
+    volumes:
+      - ./services/gateway/certs:/etc/nginx/certs:ro
     networks:
       - network_web_monitor
     ports:

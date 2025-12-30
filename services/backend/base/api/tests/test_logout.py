@@ -1,5 +1,6 @@
 import pytest
-from base.api.tests.conftest import DefaultTestValues
+
+from conftest import TestValues
 
 path = '/logout'
 method = 'POST'
@@ -11,7 +12,7 @@ def test_logout_when_logged_in(auth_client, get_user):
     Test successful logout when user is logged in
     """
     user = get_user
-    login_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
+    login_body = {'username': TestValues.username, 'password': TestValues.password}
     auth_client.request(method='POST', path='/login', json=login_body)
 
     assert auth_client.session.get('_auth_user_id') == str(user.pk)

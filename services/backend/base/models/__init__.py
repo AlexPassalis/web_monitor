@@ -6,13 +6,16 @@ import django.core.files.base
 import django.core.files.storage
 import imagehash
 import PIL.Image
-import playwright.sync_api
-from django.db import models
-from django.contrib.auth.models import AbstractUser, UserManager as BaseUserManager
-from django.core.validators import MinLengthValidator, MaxLengthValidator
+from asgiref.sync import async_to_sync
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.conf import settings
+from django.core.validators import MaxLengthValidator, MinLengthValidator
+from django.db import models
+
+from config.utils import get_browser
 
 
 class UserManager(BaseUserManager):
@@ -118,7 +121,7 @@ class WebpageScreenshot(models.Model):
     )
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['-created_at']  # noqa: RUF012
 
     @staticmethod
     @celery.shared_task
@@ -126,14 +129,9 @@ class WebpageScreenshot(models.Model):
         """
         Create the initial screenshot for a newly tracked webpage
         """
-
-        with playwright.sync_api.sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            perceptual_hash, webpagescreenshot = WebpageScreenshot.take_screenshot(
-                browser,
-                url=tracked_webpage_url,
-            )
-            browser.close()
+        perceptual_hash, webpagescreenshot = async_to_sync(WebpageScreenshot.take_screenshot)(
+            url=tracked_webpage_url
+        )
 
         timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
         file_path = f'webpagescreenshots/{tracked_webpage_id}/{timestamp}.png'
@@ -146,31 +144,33 @@ class WebpageScreenshot(models.Model):
         )
 
     @staticmethod
-    def take_screenshot(
-        browser: playwright.sync_api.Browser, url: str
-    ) -> tuple[imagehash.ImageHash, bytes]:
+    async def take_screenshot(url: str) -> tuple[imagehash.ImageHash, bytes]:
         """
         Take screenshot of webpage and return perceptual hash + screenshot
         """
+        browser = await get_browser()
+        context = await browser.new_context()
+        page = await context.new_page()
 
-        page = browser.new_page()
-        page.goto(url, wait_until='networkidle', timeout=30000)
+        try:
+            await page.goto(url, wait_until='load', timeout=30000)
 
-        screenshot = page.screenshot(full_page=True)
+            screenshot = await page.screenshot(full_page=True)
 
-        image = PIL.Image.open(io.BytesIO(screenshot))
-        perceptual_hash = imagehash.phash(image)
+            image = PIL.Image.open(io.BytesIO(screenshot))
+            perceptual_hash = imagehash.phash(image)
 
-        page.close()
+            return perceptual_hash, screenshot
 
-        return perceptual_hash, screenshot
+        finally:
+            await page.close()
+            await context.close()
 
     @staticmethod
     def upload_screenshot_to_s3(webpagescreenshot: bytes, file_path: str) -> None:
         """
         Upload screenshot of webpage to S3 bucket
         """
-
         django.core.files.storage.default_storage.save(
             name=file_path,
             content=django.core.files.base.ContentFile(content=webpagescreenshot),

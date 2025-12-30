@@ -1,6 +1,7 @@
-from base.models import User
 import pytest
-from base.api.tests.conftest import DefaultTestValues
+
+from base.models import User
+from conftest import TestValues
 
 path = '/login'
 method = 'POST'
@@ -12,7 +13,7 @@ def test_login_success(auth_client, get_user):
     Test successful login with valid credentials
     """
     user = get_user
-    json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
+    json_body = {'username': TestValues.username, 'password': TestValues.password}
     response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 200
@@ -24,17 +25,17 @@ def test_login_success(auth_client, get_user):
 @pytest.mark.parametrize(
     'username,password',
     [
-        (DefaultTestValues.username, 'WrongPass123!'),
-        (DefaultTestValues.username.upper(), DefaultTestValues.password),
-        (f' {DefaultTestValues.username} ', DefaultTestValues.password),
-        ('', DefaultTestValues.password),
-        (DefaultTestValues.username, ''),
+        (TestValues.username, 'WrongPass123!'),
+        (TestValues.username.upper(), TestValues.password),
+        (f' {TestValues.username} ', TestValues.password),
+        ('', TestValues.password),
+        (TestValues.username, ''),
         ('', ''),
-        (DefaultTestValues.username, '     '),
-        (DefaultTestValues.username, f' {DefaultTestValues.password} '),
+        (TestValues.username, '     '),
+        (TestValues.username, f' {TestValues.password} '),
     ],
 )
-def test_login_invalid_credentials(auth_client, get_user, username, password):  # noqa: ARG001
+def test_login_invalid_credentials(auth_client, get_user, username, password):
     """
     Test login failures with invalid credentials
     """
@@ -49,12 +50,12 @@ def test_login_invalid_credentials(auth_client, get_user, username, password):  
 @pytest.mark.parametrize(
     'username,password',
     [
-        (DefaultTestValues.username, None),
-        (None, DefaultTestValues.password),
+        (TestValues.username, None),
+        (None, TestValues.password),
         (None, None),
     ],
 )
-def test_login_missing_fields(auth_client, get_user, username, password):  # noqa: ARG001
+def test_login_missing_fields(auth_client, get_user, username, password):
     """
     Test login failures with missing required fields
     """
@@ -74,7 +75,7 @@ def test_login_non_existent_user(auth_client):
     """
     Test that login fails for non-existent user
     """
-    json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
+    json_body = {'username': TestValues.username, 'password': TestValues.password}
     response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 401
@@ -87,7 +88,7 @@ def test_login_user_already_logged_in(auth_client, get_user):
     Test that user can login again when already logged in
     """
     user = get_user
-    json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
+    json_body = {'username': TestValues.username, 'password': TestValues.password}
 
     response_1 = auth_client.request(method=method, path=path, json=json_body)
     assert response_1.status_code == 200
@@ -104,13 +105,13 @@ def test_login_inactive_user(auth_client):
     Test that inactive users cannot login
     """
     user = User.objects.create_user(
-        username=DefaultTestValues.username,
-        password=DefaultTestValues.password,
+        username=TestValues.username,
+        password=TestValues.password,
     )
     user.is_active = False
     user.save()
 
-    json_body = {'username': DefaultTestValues.username, 'password': DefaultTestValues.password}
+    json_body = {'username': TestValues.username, 'password': TestValues.password}
     response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 401

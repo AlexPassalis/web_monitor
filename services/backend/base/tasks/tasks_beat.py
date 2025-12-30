@@ -1,10 +1,9 @@
-from base.models import Webpage
-
 import logging
 
 from asgiref.sync import async_to_sync
 from celery import shared_task
 
+from base.models import Webpage
 
 logger = logging.getLogger(__name__)
 

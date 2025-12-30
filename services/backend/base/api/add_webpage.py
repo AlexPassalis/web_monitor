@@ -1,8 +1,10 @@
+from typing import Annotated, Literal
+
+from django.http import HttpRequest
 from ninja import Router, Schema
 from ninja.security import django_auth
-from pydantic import HttpUrl, Field
-from typing import Literal, Annotated
-from django.http import HttpRequest
+from pydantic import Field, HttpUrl
+
 from base.models import Webpage, WebpageScreenshot
 
 router_add_webpage = Router(tags=['Webpage tracking'])

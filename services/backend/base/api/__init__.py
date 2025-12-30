@@ -1,10 +1,10 @@
-from ninja import NinjaAPI
 from django.urls import URLResolver, path
+from ninja import NinjaAPI
 
-from .health import router_health
-from .favicon_ico import router_favicon
-from .auth import router_auth
 from .add_webpage import router_add_webpage
+from .auth import router_auth
+from .favicon_ico import router_favicon
+from .health import router_health
 
 api: NinjaAPI = NinjaAPI(
     title='Backend API Service',
