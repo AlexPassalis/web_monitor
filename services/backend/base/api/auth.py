@@ -1,10 +1,12 @@
-from ninja import Router, Schema
-from django.http import HttpRequest
 from typing import Literal
+
 import django.contrib.auth
-from base.models import User
 from django.core.exceptions import ValidationError
+from django.http import HttpRequest
 from django.middleware.csrf import get_token
+from ninja import Router, Schema
+
+from base.models import User
 
 router_auth = Router(tags=['Authentication'])
 

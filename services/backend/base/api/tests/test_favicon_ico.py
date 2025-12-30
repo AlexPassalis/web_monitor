@@ -1,6 +1,7 @@
-from ninja.testing import TestClient
-from base.api.favicon_ico import router_favicon
 import pytest
+from ninja.testing import TestClient
+
+from base.api.favicon_ico import router_favicon
 
 client = TestClient(router_favicon)
 

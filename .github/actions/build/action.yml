@@ -60,9 +60,3 @@ runs:
         tags: web_monitor-gateway:latest
         cache-from: type=gha,scope=gateway
         cache-to: type=gha,mode=max,scope=gateway
-
-    - name: Start containers
-      shell: bash
-      run: make start
-      env:
-        CI: true

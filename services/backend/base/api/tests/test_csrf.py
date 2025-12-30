@@ -1,6 +1,7 @@
 import pytest
-from base.api.tests.conftest import DefaultTestValues
 from django.test import Client
+
+from conftest import TestValues
 
 path = '/csrf'
 method = 'GET'
@@ -37,7 +38,7 @@ def test_csrf_tokens_different_between_requests(auth_client):
 
 
 @pytest.mark.django_db
-def test_csrf_protection_on_authenticated_endpoint(get_user):  # noqa: ARG001
+def test_csrf_protection_on_authenticated_endpoint(get_user):
     """
     Test CSRF protection on authenticated endpoints
     """
@@ -45,13 +46,13 @@ def test_csrf_protection_on_authenticated_endpoint(get_user):  # noqa: ARG001
 
     csrf_client.post(
         '/api/login',
-        data={'username': DefaultTestValues.username, 'password': DefaultTestValues.password},
+        data={'username': TestValues.username, 'password': TestValues.password},
         content_type='application/json',
     )
 
     response_without_token = csrf_client.post(
         '/api/add_webpage',
-        data={'url': DefaultTestValues.url, 'interval': DefaultTestValues.interval},
+        data={'url': TestValues.url, 'interval': TestValues.interval},
         content_type='application/json',
     )
     assert response_without_token.status_code == 403
@@ -62,7 +63,7 @@ def test_csrf_protection_on_authenticated_endpoint(get_user):  # noqa: ARG001
 
     response_with_token = csrf_client.post(
         '/api/add_webpage',
-        data={'url': DefaultTestValues.url, 'interval': DefaultTestValues.interval},
+        data={'url': TestValues.url, 'interval': TestValues.interval},
         content_type='application/json',
         HTTP_X_CSRFTOKEN=csrf_token,
     )

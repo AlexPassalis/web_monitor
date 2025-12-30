@@ -13,24 +13,24 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 
 from config import (
-    SECRET_KEY,
-    DEBUG,
-    LOG_LEVEL,
     ALLOWED_HOSTS,
-    TRUSTED_ORIGINS,
-    CORS_ALLOW_CREDENTIALS,
-    DB_NAME,
-    DB_HOST,
-    DB_PORT,
-    DB_USER,
-    DB_PASSWORD,
     CELERY_BROKER_URL,
     CELERY_RESULT_BACKEND,
-    S3_ENDPOINT_URL,
+    CORS_ALLOW_CREDENTIALS,
+    DB_HOST,
+    DB_NAME,
+    DB_PASSWORD,
+    DB_PORT,
+    DB_USER,
+    DEBUG,
+    LOG_LEVEL,
     S3_ACCESS_KEY,
-    S3_SECRET_KEY,
     S3_BUCKET_NAME,
+    S3_ENDPOINT_URL,
     S3_REGION,
+    S3_SECRET_KEY,
+    SECRET_KEY,
+    TRUSTED_ORIGINS,
 )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

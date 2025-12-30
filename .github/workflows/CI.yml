@@ -31,6 +31,8 @@ jobs:
           bun-version: 1.3.5
       - name: Install frontend dependencies
         run: make install_frontend
+      - name: Docker compose up
+        run: make start_backend
       - name: Run code checks
         run: make check
 
@@ -43,6 +45,8 @@ jobs:
       - uses: ./.github/actions/build
         with:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+      - name: Docker compose up
+        run: make start_backend
       - name: Run backend tests with coverage
         run: make test_coverage
       - name: Copy coverage from container to host
@@ -62,6 +66,8 @@ jobs:
       - uses: ./.github/actions/build
         with:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+      - name: Docker compose up
+        run: make start_backend
       - name: Check for missing migrations
         run: make check_missing_migrations
       - name: Apply migrations
@@ -70,9 +76,9 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.5
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: make install_frontend
-      - name: Install Playwright Browsers
+      - name: Install Playwright Chrome browser
         run: bin/in_frontend bunx playwright install chromium --with-deps
       - name: Run frontend tests
         run: make test_frontend

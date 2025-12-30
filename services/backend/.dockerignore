@@ -1,6 +1,14 @@
-.venv/
 __pycache__/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
-
+.venv/
+htmlcov/
+.coverage
+.dockerignore
+.env
+celerybeat-schedule
+celerybeat-schedule-shm
+celerybeat-schedule-wal
+coverage.xml
+Dockerfile

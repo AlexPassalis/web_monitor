@@ -1,7 +1,6 @@
-from ninja import Router
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
-
+from ninja import Router
 
 router_favicon: Router = Router()
 

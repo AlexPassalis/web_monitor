@@ -1,11 +1,10 @@
-from playwright.async_api import Browser as AsyncBrowser
-from playwright.sync_api import Browser as SyncBrowser
-from imagehash import ImageHash
-
 import io
 
-from PIL import Image
 import imagehash
+from imagehash import ImageHash
+from PIL import Image
+from playwright.async_api import Browser as AsyncBrowser
+from playwright.sync_api import Browser as SyncBrowser
 
 
 def take_webpagescreenshot(browser: SyncBrowser, url: str) -> tuple[ImageHash, bytes]:
@@ -14,7 +13,7 @@ def take_webpagescreenshot(browser: SyncBrowser, url: str) -> tuple[ImageHash, b
     """
 
     page = browser.new_page()
-    page.goto(url, wait_until='networkidle', timeout=30000)
+    page.goto(url, wait_until='load', timeout=30000)
 
     screenshot_bytes = page.screenshot(full_page=True)
 
@@ -32,7 +31,7 @@ async def async_take_webpagescreenshot(browser: AsyncBrowser, url: str) -> tuple
     """
 
     page = await browser.new_page()
-    await page.goto(url, wait_until='networkidle', timeout=30000)
+    await page.goto(url, wait_until='load', timeout=30000)
 
     screenshot_bytes = await page.screenshot(full_page=True)
 

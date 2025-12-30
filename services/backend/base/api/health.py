@@ -1,5 +1,5 @@
-from ninja import Router, Schema
 from django.http import HttpRequest
+from ninja import Router, Schema
 
 router_health = Router()
 

@@ -14,16 +14,18 @@ init:
 	@echo "==> Initializing git hooks"
 	git config core.hooksPath bin/.githooks
 
+build:
+	@echo "==> Building docker images"
+	docker compose -p ${COMPOSE_NAME} build
+
+build_no_cache:
+	@echo "==> Building docker images without cache"
+	docker compose -p ${COMPOSE_NAME} build --no-cache
+
 start:
 	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -eq 0 ]; then \
-		bin/create_postgres_volume; \
-		bin/create_valkey_volume; \
-		bin/create_minio_volume; \
-		bin/create_docker_network; \
 		${MAKE} start_backend; \
-		if [ "$${CI:-false}" != "true" ]; then \
-			${MAKE} start_frontend; \
-		fi \
+		${MAKE} start_frontend; \
 	else \
 		echo "Docker compose \"${COMPOSE_NAME}\" is already running."; \
 	fi
@@ -72,6 +74,10 @@ install_backend:
 	@cd services/backend && uv sync --extra dev
 
 start_backend:
+	@bin/create_postgres_volume
+	@bin/create_valkey_volume
+	@bin/create_minio_volume
+	@bin/create_docker_network
 	@echo "==> Starting backend services"
 	@docker compose -p ${COMPOSE_NAME} -f docker-compose.yml up -d --wait
 
