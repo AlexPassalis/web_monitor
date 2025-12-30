@@ -1,4 +1,3 @@
-import datetime
 import io
 
 import celery
@@ -129,19 +128,18 @@ class WebpageScreenshot(models.Model):
         """
         Create the initial screenshot for a newly tracked webpage
         """
-        perceptual_hash, webpagescreenshot = async_to_sync(WebpageScreenshot.take_screenshot)(
+        perceptual_hash, screenshot = async_to_sync(WebpageScreenshot.take_screenshot)(
             url=tracked_webpage_url
         )
 
-        timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
-        file_path = f'webpagescreenshots/{tracked_webpage_id}/{timestamp}.png'
-
-        WebpageScreenshot.upload_screenshot_to_s3(webpagescreenshot, file_path)
-
-        WebpageScreenshot.objects.create(
+        webpagescreenshot = WebpageScreenshot.objects.create(
             tracked_webpage_id=tracked_webpage_id,
             perceptual_hash=str(perceptual_hash),
         )
+
+        timestamp = webpagescreenshot.created_at.strftime('%Y%m%d_%H%M%S_%f')
+        file_path = f'webpagescreenshots/{tracked_webpage_id}/{timestamp}.png'
+        WebpageScreenshot.upload_screenshot_to_s3(screenshot, file_path)
 
     @staticmethod
     async def take_screenshot(url: str) -> tuple[imagehash.ImageHash, bytes]:

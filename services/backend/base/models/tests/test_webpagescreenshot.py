@@ -19,8 +19,9 @@ def test_upload_screenshot_to_s3():
     WebpageScreenshot.upload_screenshot_to_s3(image_bytes, file_path)
 
     assert django.core.files.storage.default_storage.exists(file_path)
-    saved_content = django.core.files.storage.default_storage.open(file_path).read()
-    assert saved_content == image_bytes
+    with django.core.files.storage.default_storage.open(file_path) as file:
+        saved_content = file.read()
+        assert saved_content == image_bytes
 
     django.core.files.storage.default_storage.delete(file_path)
 
