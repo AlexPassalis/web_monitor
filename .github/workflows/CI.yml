@@ -39,7 +39,7 @@ jobs:
         run: make check
 
   test_backend:
-    name: test backend
+    name: test_backend
     needs: build
     timeout-minutes: 20
     runs-on: ubuntu-latest
@@ -61,7 +61,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   test_migrations_and_frontend:
-    name: test migrations and frontend
+    name: test_migrations_and_frontend
     needs: build
     timeout-minutes: 20
     runs-on: ubuntu-latest
