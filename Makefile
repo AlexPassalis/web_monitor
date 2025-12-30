@@ -24,10 +24,6 @@ build_no_cache:
 
 start:
 	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -eq 0 ]; then \
-		bin/create_postgres_volume; \
-		bin/create_valkey_volume; \
-		bin/create_minio_volume; \
-		bin/create_docker_network; \
 		${MAKE} start_backend; \
 		${MAKE} start_frontend; \
 	else \
@@ -78,6 +74,10 @@ install_backend:
 	@cd services/backend && uv sync --extra dev
 
 start_backend:
+	@bin/create_postgres_volume
+	@bin/create_valkey_volume
+	@bin/create_minio_volume
+	@bin/create_docker_network
 	@echo "==> Starting backend services"
 	@docker compose -p ${COMPOSE_NAME} -f docker-compose.yml up -d --wait
 
