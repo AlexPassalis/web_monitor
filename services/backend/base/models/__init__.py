@@ -1,10 +1,13 @@
 import io
+import logging
+from typing import NamedTuple
 
 import celery
 import django.core.files.base
 import django.core.files.storage
 import imagehash
 import PIL.Image
+import playwright.async_api
 from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -16,13 +19,14 @@ from django.db import models
 
 from config.utils import get_browser
 
+logger = logging.getLogger(__name__)
+
 
 class UserManager(BaseUserManager):
     def _create_user(self, username, email, password, **extra_fields):
         """
         Create and save a user with password and username validation
         """
-
         email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
         user.full_clean(exclude=['password'])
@@ -69,44 +73,49 @@ class Webpage(models.Model):
 
     minute = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name='tracked_webpage_min',
+        related_name='webpage_min',
         blank=True,
         help_text='Users tracking this webpage every 1 minute',
     )
 
     hour = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name='tracked_webpage_hour',
+        related_name='webpage_hour',
         blank=True,
         help_text='Users tracking this webpage every 1 hour',
     )
 
     day = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name='tracked_webpage_day',
+        related_name='webpage_day',
         blank=True,
         help_text='Users tracking this webpage every 1 day',
     )
 
     def get_latest_screenshot(self) -> 'WebpageScreenshot | None':
         """
-        Retrieves the most recent screenshot of the tracked webpage
+        Retrieves the most recent screenshot of the webpage
         """
         return self.screenshots.first()  # type: ignore[attr-defined]
 
 
+class ScreenshotResult(NamedTuple):
+    perceptual_hash: str
+    screenshot: bytes
+
+
 class WebpageScreenshot(models.Model):
     """
-    Represents a screenshot of a tracked webpage at a specific point in time
+    Represents a screenshot of a webpage at a specific point in time
     """
 
     id = models.AutoField(primary_key=True)
 
-    tracked_webpage = models.ForeignKey(
+    webpage = models.ForeignKey(
         Webpage,
         on_delete=models.CASCADE,
         related_name='screenshots',
-        help_text='The tracked webpage this screenshot belongs to',
+        help_text='The webpage this screenshot belongs to',
     )
 
     perceptual_hash = models.CharField(
@@ -124,25 +133,33 @@ class WebpageScreenshot(models.Model):
 
     @staticmethod
     @celery.shared_task
-    def save_screenshot(tracked_webpage_id: int, tracked_webpage_url: str) -> None:
+    def save_screenshot(webpage_id: int) -> None:
         """
-        Create the initial screenshot for a newly tracked webpage
+        Take screenshot of webpage and save if changed
         """
-        perceptual_hash, screenshot = async_to_sync(WebpageScreenshot.take_screenshot)(
-            url=tracked_webpage_url
-        )
+        webpage = Webpage.objects.get(id=webpage_id)
+
+        result = async_to_sync(WebpageScreenshot.take_screenshot)(url=webpage.url)
+        if result is None:
+            return
+
+        latest_screenshot = webpage.get_latest_screenshot()
+        if latest_screenshot and latest_screenshot.perceptual_hash == result.perceptual_hash:
+            return
 
         webpagescreenshot = WebpageScreenshot.objects.create(
-            tracked_webpage_id=tracked_webpage_id,
-            perceptual_hash=str(perceptual_hash),
+            webpage_id=webpage.id,
+            perceptual_hash=result.perceptual_hash,
         )
 
         timestamp = webpagescreenshot.created_at.strftime('%Y%m%d_%H%M%S_%f')
-        file_path = f'webpagescreenshots/{tracked_webpage_id}/{timestamp}.png'
-        WebpageScreenshot.upload_screenshot_to_s3(screenshot, file_path)
+        file_path = f'webpagescreenshots/{webpage.id}/{timestamp}.png'
+        WebpageScreenshot.upload_screenshot_to_s3(result.screenshot, file_path)
+
+        logger.info('New screenshot saved for webpage with url: %s', webpage.url)
 
     @staticmethod
-    async def take_screenshot(url: str) -> tuple[imagehash.ImageHash, bytes]:
+    async def take_screenshot(url: str) -> ScreenshotResult | None:
         """
         Take screenshot of webpage and return perceptual hash + screenshot
         """
@@ -151,15 +168,30 @@ class WebpageScreenshot(models.Model):
         page = await context.new_page()
 
         try:
-            await page.goto(url, wait_until='load', timeout=30000)
+            response = await page.goto(url, wait_until='load', timeout=30000)
+            if response and not response.ok:
+                logger.error(
+                    'WebpageScreenshot.take_screenshot url:%s bad response: %s',
+                    url,
+                    response.status,
+                )
+                return None
 
             screenshot = await page.screenshot(full_page=True)
 
             image = PIL.Image.open(io.BytesIO(screenshot))
             perceptual_hash = imagehash.phash(image)
 
-            return perceptual_hash, screenshot
-
+            return ScreenshotResult(str(perceptual_hash), screenshot)
+        except playwright.async_api.TimeoutError as err:
+            logger.error('WebpageScreenshot.take_screenshot url:%s timeout error: %s', url, err)
+            return None
+        except playwright.async_api.Error as err:
+            logger.error('WebpageScreenshot.take_screenshot url:%s navigation error: %s', url, err)
+            return None
+        except Exception as err:
+            logger.error('WebpageScreenshot.take_screenshot url:%s unexpected error: %s', url, err)
+            return None
         finally:
             await page.close()
             await context.close()

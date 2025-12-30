@@ -50,18 +50,18 @@ def add_webpage(
     url = str(data.url)
     interval = data.interval
 
-    tracked_webpage, created = Webpage.objects.get_or_create(url=url)
+    webpage, created = Webpage.objects.get_or_create(url=url)
     match interval:
         case 'minute':
-            tracked_webpage.minute.add(user)
+            webpage.minute.add(user)
         case 'hour':
-            tracked_webpage.hour.add(user)
+            webpage.hour.add(user)
         case 'day':
-            tracked_webpage.day.add(user)
+            webpage.day.add(user)
 
     if created:
         WebpageScreenshot.save_screenshot.apply_async(
-            args=(tracked_webpage.id, url),
+            args=(webpage.id,),
             queue='high_priority',
         )
 

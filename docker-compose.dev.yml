@@ -1,0 +1,13 @@
+services:
+  backend:
+    build:
+      target: dev
+  celery_beat:
+    build:
+      target: dev
+  celery_worker:
+    build:
+      target: dev
+  gateway:
+    build:
+      target: dev

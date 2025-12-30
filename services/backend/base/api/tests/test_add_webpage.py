@@ -33,11 +33,11 @@ def test_get_webpage_unauthorized():
         'http://example.com/' + 'a' * 2000,
     ],
 )
-def test_get_webpage_valid(get_user, url):
+@patch('base.models.WebpageScreenshot.save_screenshot.apply_async')
+def test_get_webpage_valid(mock_task, get_user, url):
     """
     Test that valid URLs are accepted and tracked successfully
     """
-
     json_body = {'url': url, 'interval': TestValues.interval}
 
     response = client.request(method=method, path=path, json=json_body, user=get_user)
@@ -88,7 +88,6 @@ def test_get_webpage_invalid(get_user, json_body, expected_json):
     """
     Test that invalid URLs and missing required fields are rejected with validation errors
     """
-
     response = client.request(method=method, path=path, json=json_body, user=get_user)
     assert response.status_code == 422
 
@@ -220,7 +219,7 @@ def test_get_webpage_task_triggered_on_new_webpage(mock_task, get_user):
     assert response.status_code == 201
 
     webpage = Webpage.objects.get(url=TestValues.url)
-    mock_task.assert_called_once_with(args=(webpage.id, TestValues.url), queue='high_priority')
+    mock_task.assert_called_once_with(args=(webpage.id,), queue='high_priority')
 
 
 @pytest.mark.django_db
