@@ -1,16 +1,15 @@
 from ninja import Router, Schema
 from ninja.security import django_auth
-from pydantic import HttpUrl
-from typing import Literal
+from pydantic import HttpUrl, Field
+from typing import Literal, Annotated
 from django.http import HttpRequest
-from base.models import Webpage
-from base.tasks.create_initial_webpagescreenshot import create_initial_webpagescreenshot
+from base.models import Webpage, WebpageScreenshot
 
 router_add_webpage = Router(tags=['Webpage tracking'])
 
 
 class TrackRequest(Schema):
-    url: HttpUrl
+    url: Annotated[HttpUrl, Field(max_length=2048)]
     interval: Literal['minute', 'hour', 'day']
 
 
@@ -59,7 +58,7 @@ def add_webpage(
             tracked_webpage.day.add(user)
 
     if created:
-        create_initial_webpagescreenshot.apply_async(
+        WebpageScreenshot.save_screenshot.apply_async(
             args=(tracked_webpage.id, url),
             queue='high_priority',
         )

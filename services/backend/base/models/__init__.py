@@ -1,3 +1,12 @@
+import datetime
+import io
+
+import celery
+import django.core.files.base
+import django.core.files.storage
+import imagehash
+import PIL.Image
+import playwright.sync_api
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager as BaseUserManager
 from django.core.validators import MinLengthValidator, MaxLengthValidator
@@ -110,3 +119,59 @@ class WebpageScreenshot(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+    @staticmethod
+    @celery.shared_task
+    def save_screenshot(tracked_webpage_id: int, tracked_webpage_url: str) -> None:
+        """
+        Create the initial screenshot for a newly tracked webpage
+        """
+
+        with playwright.sync_api.sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            perceptual_hash, webpagescreenshot = WebpageScreenshot.take_screenshot(
+                browser,
+                url=tracked_webpage_url,
+            )
+            browser.close()
+
+        timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
+        file_path = f'webpagescreenshots/{tracked_webpage_id}/{timestamp}.png'
+
+        WebpageScreenshot.upload_screenshot_to_s3(webpagescreenshot, file_path)
+
+        WebpageScreenshot.objects.create(
+            tracked_webpage_id=tracked_webpage_id,
+            perceptual_hash=str(perceptual_hash),
+        )
+
+    @staticmethod
+    def take_screenshot(
+        browser: playwright.sync_api.Browser, url: str
+    ) -> tuple[imagehash.ImageHash, bytes]:
+        """
+        Take screenshot of webpage and return perceptual hash + screenshot
+        """
+
+        page = browser.new_page()
+        page.goto(url, wait_until='networkidle', timeout=30000)
+
+        screenshot = page.screenshot(full_page=True)
+
+        image = PIL.Image.open(io.BytesIO(screenshot))
+        perceptual_hash = imagehash.phash(image)
+
+        page.close()
+
+        return perceptual_hash, screenshot
+
+    @staticmethod
+    def upload_screenshot_to_s3(webpagescreenshot: bytes, file_path: str) -> None:
+        """
+        Upload screenshot of webpage to S3 bucket
+        """
+
+        django.core.files.storage.default_storage.save(
+            name=file_path,
+            content=django.core.files.base.ContentFile(content=webpagescreenshot),
+        )

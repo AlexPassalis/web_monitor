@@ -13,7 +13,7 @@ class DefaultTestValues:
 
     username = 'testuser'
     password = 'ValidPass123!'
-    url = 'http://example.com'
+    url = 'http://example.com/'
     interval = 'minute'
 
 
