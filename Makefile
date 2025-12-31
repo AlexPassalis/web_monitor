@@ -16,11 +16,11 @@ init:
 
 build:
 	@echo "==> Building docker images"
-	docker compose -p ${COMPOSE_NAME} build
+	docker compose -p ${COMPOSE_NAME} -f docker-compose.yml -f docker-compose.dev.yml build
 
 build_no_cache:
 	@echo "==> Building docker images without cache"
-	docker compose -p ${COMPOSE_NAME} build --no-cache
+	docker compose -p ${COMPOSE_NAME} -f docker-compose.yml -f docker-compose.dev.yml build --no-cache
 
 start:
 	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -eq 0 ]; then \
@@ -79,7 +79,7 @@ start_backend:
 	@bin/create_minio_volume
 	@bin/create_docker_network
 	@echo "==> Starting backend services"
-	@docker compose -p ${COMPOSE_NAME} -f docker-compose.yml up -d --wait
+	@docker compose -p ${COMPOSE_NAME} -f docker-compose.yml -f docker-compose.dev.yml up -d --wait
 
 stop_backend:
 	@echo "==> Stopping backend services"
@@ -106,14 +106,14 @@ check_type_backend:
 
 test_backend:
 	@echo "==> Running tests inside \"${BACKEND_SERVICE_NAME}\" service"
-	@bin/dockerize_backend env ENV=testing uv run pytest
+	@bin/dockerize_backend uv run pytest
 
 test_backend_coverage:
 	@echo "==> Running tests with coverage inside \"${BACKEND_SERVICE_NAME}\" service"
 	@if [ "$${CI:-false}" != "true" ]; then \
-		bin/dockerize_backend env ENV=testing uv run pytest --cov --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing; \
+		bin/dockerize_backend uv run pytest --cov --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing; \
 	else \
-		bin/dockerize_backend env ENV=testing uv run pytest --cov --cov-branch --cov-report=xml -p no:cacheprovider; \
+		bin/dockerize_backend uv run pytest --cov --cov-branch --cov-report=xml -p no:cacheprovider; \
 	fi
 
 makemigrations:

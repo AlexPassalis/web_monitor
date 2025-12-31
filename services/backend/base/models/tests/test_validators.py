@@ -15,7 +15,6 @@ def test_max_length_validator_help_text(max_length, expected_text):
     """
     Verify help text formatting for various max_length values.
     """
-
     validator = MaximumLengthValidator(max_length=max_length)
     help_text = validator.get_help_text()
 

@@ -7,6 +7,7 @@ from ninja.testing import TestClient
 
 from base.api.auth import router_auth
 from base.models import User, Webpage
+from config.celery import app
 
 
 class TestValues:
@@ -50,6 +51,15 @@ def create_s3_bucket():
         s3_client.create_bucket(Bucket=settings.STORAGES['default']['OPTIONS']['bucket_name'])
     except s3_client.exceptions.BucketAlreadyOwnedByYou:
         pass
+
+
+@pytest.fixture(scope='session', autouse=True)
+def setup_celery_eager_mode():
+    """
+    Force Celery to run in eager mode for all tests
+    """
+    app.conf.task_always_eager = True
+    app.conf.task_eager_propagates = True
 
 
 @pytest.fixture

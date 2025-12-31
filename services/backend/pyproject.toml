@@ -24,6 +24,7 @@ dev = [
     "ruff~=0.14.0",
     "mypy~=1.18.2",
     "pytest~=8.4.2",
+    "pytest-env~=1.2.0",
     "pytest-cov~=7.0.0",
     "pytest-django~=4.11.1",
     "celery-types~=0.23.0",
@@ -46,6 +47,8 @@ select = [
     "W",
     "RUF",
     "I",
+    "D202",  # No blank lines allowed after function docstring
+    "PYI024",  # Use typing.NamedTuple instead of collections.namedtuple
 ]
 
 [tool.pytest.ini_options]
@@ -53,6 +56,9 @@ DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["test_*.py"]
 filterwarnings = [
     "ignore::pydantic.warnings.PydanticDeprecatedSince20",
+]
+env = [
+    "ENV=testing",
 ]
 
 [tool.coverage.run]

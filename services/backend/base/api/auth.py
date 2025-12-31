@@ -49,7 +49,6 @@ def signup(
     """
     Create a new user account
     """
-
     try:
         user = User.objects.create_user(username=data.username, password=data.password)
     except ValidationError as error:
@@ -74,7 +73,6 @@ def login(
     """
     Log a user in
     """
-
     user = django.contrib.auth.authenticate(request, username=data.username, password=data.password)
 
     if user is None:
@@ -94,7 +92,6 @@ def logout(request: HttpRequest) -> tuple[Literal[200], Response.Logout]:
     """
     Log the current user out
     """
-
     django.contrib.auth.logout(request)
     return 200, Response.Logout(message='Logout successful')
 
@@ -104,5 +101,4 @@ def get_csrf(request: HttpRequest) -> tuple[Literal[200], dict]:
     """
     Get CSRF token
     """
-
     return 200, {'csrfToken': get_token(request)}

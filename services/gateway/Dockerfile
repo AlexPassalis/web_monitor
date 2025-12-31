@@ -4,3 +4,6 @@ RUN apk add --no-cache curl
 
 FROM base AS dev
 COPY nginx-development.conf /etc/nginx/nginx.conf
+
+FROM base AS prod
+COPY nginx.conf /etc/nginx/nginx.conf
