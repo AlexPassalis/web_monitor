@@ -1,3 +1,5 @@
+import logging
+
 import django.core.files.storage
 import pytest
 from ninja.testing import TestClient
@@ -60,3 +62,16 @@ def test_run_every_minute_creates_screenshot_when_missing(get_user, get_webpage)
     assert django.core.files.storage.default_storage.exists(file_path)
 
     django.core.files.storage.default_storage.delete(file_path)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_run_every_minute_no_webpages_tracked(caplog):
+    """
+    Test that run_every_minute logs info message when no webpages are being tracked
+    """
+    assert Webpage.objects.exclude(minute__isnull=True).count() == 0
+
+    with caplog.at_level(logging.INFO):
+        run_every_minute()
+
+    assert 'There are no webpages being tracked every minute' in caplog.text

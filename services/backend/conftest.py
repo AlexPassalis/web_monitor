@@ -60,7 +60,6 @@ def setup_celery_eager_mode():
     """
     app.conf.task_always_eager = True
     app.conf.task_eager_propagates = True
-    app.conf.task_eager_propagates_exceptions = True
 
 
 @pytest.fixture
