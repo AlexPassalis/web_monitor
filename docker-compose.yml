@@ -11,6 +11,26 @@ volumes:
     external: true
 
 services:
+  dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:master
+    restart: always
+    networks:
+      - network_web_monitor
+    environment:
+      - DOZZLE_NO_ANALYTICS=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "8080:8080"
+    healthcheck:
+      start_period: 30s
+      start_interval: 5s
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+
   db:
     container_name: db
     build:
@@ -32,6 +52,31 @@ services:
           "CMD-SHELL",
           "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} && PGPASSWORD=$${POSTGRES_PASSWORD} psql -U $${POSTGRES_USER} -d $${POSTGRES_DB} -c 'SELECT 1'",
         ]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+
+  pgweb:
+    container_name: pgweb
+    image: sosedoff/pgweb:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    networks:
+      - network_web_monitor
+    env_file:
+      - ./services/db/.env
+    entrypoint: ["/bin/sh"]
+    command:
+      - -c
+      - 'pgweb --url "postgres://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@db:5432/$${POSTGRES_DB}?sslmode=disable" --bind 0.0.0.0 --listen 8081'
+    ports:
+      - "8081:8081"
+    healthcheck:
+      start_period: 30s
+      start_interval: 5s
+      test: ["CMD", "nc", "-vz", "127.0.0.1", "8081"]
       interval: 10s
       timeout: 5s
       retries: 2

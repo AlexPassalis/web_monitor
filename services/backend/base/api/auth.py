@@ -31,6 +31,9 @@ class Response:
     class Logout(Schema):
         message: Literal['Logout successful']
 
+    class Csrf(Schema):
+        csrfToken: str
+
     class Error(Schema):
         detail: str | dict | list
 
@@ -96,9 +99,9 @@ def logout(request: HttpRequest) -> tuple[Literal[200], Response.Logout]:
     return 200, Response.Logout(message='Logout successful')
 
 
-@router_auth.get('/csrf', response={200: dict})
-def get_csrf(request: HttpRequest) -> tuple[Literal[200], dict]:
+@router_auth.get('/csrf', response={200: Response.Csrf})
+def get_csrf(request: HttpRequest) -> tuple[Literal[200], Response.Csrf]:
     """
     Get CSRF token
     """
-    return 200, {'csrfToken': get_token(request)}
+    return 200, Response.Csrf(csrfToken=get_token(request))

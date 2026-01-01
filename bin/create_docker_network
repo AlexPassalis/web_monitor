@@ -4,7 +4,7 @@ set -euo pipefail
 DOCKER_NETWORK="network_web_monitor"
 
 if docker network inspect "$DOCKER_NETWORK" >/dev/null 2>&1; then
-    echo "Docker network \"$DOCKER_NETWORK\" already exists."
+    echo "Docker network \"$DOCKER_NETWORK\" already exists"
 else
     docker network create -d bridge "$DOCKER_NETWORK"
     echo "Docker network \"$DOCKER_NETWORK\" created."

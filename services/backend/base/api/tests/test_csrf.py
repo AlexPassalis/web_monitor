@@ -51,7 +51,7 @@ def test_csrf_protection_on_authenticated_endpoint(get_user):
     )
 
     response_without_token = csrf_client.post(
-        '/api/add_webpage',
+        '/api/webpage',
         data={'url': TestValues.url, 'interval': TestValues.interval},
         content_type='application/json',
     )
@@ -62,10 +62,10 @@ def test_csrf_protection_on_authenticated_endpoint(get_user):
     csrf_token = csrf_response.json()['csrfToken']
 
     response_with_token = csrf_client.post(
-        '/api/add_webpage',
+        '/api/webpage',
         data={'url': TestValues.url, 'interval': TestValues.interval},
         content_type='application/json',
         HTTP_X_CSRFTOKEN=csrf_token,
     )
     assert response_with_token.status_code == 201
-    assert response_with_token.json() == {'message': 'Webpage tracked successfully'}
+    assert response_with_token.json()['message'] == 'Webpage tracked successfully'

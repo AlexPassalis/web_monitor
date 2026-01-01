@@ -34,7 +34,6 @@ export default function Auth() {
                   username: input_username_ref.current.value,
                   password: input_password_ref.current.value,
                 },
-                credentials: "include",
               })
 
               if (err) {
@@ -48,7 +47,6 @@ export default function Auth() {
                   username: input_username_ref.current.value,
                   password: input_password_ref.current.value,
                 },
-                credentials: "include",
               })
 
               if (err) {

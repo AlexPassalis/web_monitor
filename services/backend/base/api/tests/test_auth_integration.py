@@ -51,28 +51,28 @@ def test_session_persistence_across_requests(get_user):
     assert login_response.status_code == 200
     assert django_client.session['_auth_user_id'] == str(user.pk)
 
-    add_webpage_response_1 = django_client.post(
-        '/api/add_webpage',
+    webpage_response_1 = django_client.post(
+        '/api/webpage',
         data={'url': 'http://example1.com', 'interval': TestValues.interval},
         content_type='application/json',
     )
-    assert add_webpage_response_1.status_code == 201
+    assert webpage_response_1.status_code == 201
     assert django_client.session['_auth_user_id'] == str(user.pk)
 
-    add_webpage_response_2 = django_client.post(
-        '/api/add_webpage',
+    webpage_response_2 = django_client.post(
+        '/api/webpage',
         data={'url': 'http://example2.com', 'interval': TestValues.interval},
         content_type='application/json',
     )
-    assert add_webpage_response_2.status_code == 201
+    assert webpage_response_2.status_code == 201
     assert django_client.session['_auth_user_id'] == str(user.pk)
 
-    add_webpage_response_3 = django_client.post(
-        '/api/add_webpage',
+    webpage_response_3 = django_client.post(
+        '/api/webpage',
         data={'url': 'http://example3.com', 'interval': TestValues.interval},
         content_type='application/json',
     )
-    assert add_webpage_response_3.status_code == 201
+    assert webpage_response_3.status_code == 201
     assert django_client.session['_auth_user_id'] == str(user.pk)
 
 

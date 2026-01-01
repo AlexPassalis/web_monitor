@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+tbody tr.no-hover {
+  cursor: default !important;
+  pointer-events: none;
+}
+
+tbody tr.no-hover td {
+  background-color: transparent !important;
+}
+
+tbody tr.no-hover:hover {
+  background-color: transparent !important;
+}
+
+tbody tr.no-hover:hover td {
+  background-color: transparent !important;
+}
+
+tbody tr.no-hover * {
+  pointer-events: auto;
+}

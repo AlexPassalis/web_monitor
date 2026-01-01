@@ -4,12 +4,12 @@ import django.core.files.storage
 import pytest
 from ninja.testing import TestClient
 
-from base.api.add_webpage import router_add_webpage
-from base.models import Webpage, WebpageScreenshot
+from base.api.webpage import router_webpage
+from base.models import Webpage, WebpageScreenshot, WebpageTracking
 from base.tasks.tasks_beat import run_every_minute
 from conftest import TestValues
 
-client = TestClient(router_add_webpage)
+client = TestClient(router_webpage)
 
 
 @pytest.mark.django_db(transaction=True)
@@ -19,7 +19,7 @@ def test_run_every_minute_no_change(get_user):
     """
     json_body = {'url': TestValues.url, 'interval': 'minute'}
 
-    response = client.request(method='POST', path='/add_webpage', json=json_body, user=get_user)
+    response = client.request(method='POST', path='/webpage', json=json_body, user=get_user)
     assert response.status_code == 201
 
     webpage = Webpage.objects.get(url=TestValues.url)
@@ -44,7 +44,7 @@ def test_run_every_minute_creates_screenshot_when_missing(get_user, get_webpage)
     """
     Test that run_every_minute triggers screenshot creation for webpages without screenshots
     """
-    get_webpage.minute.add(get_user)
+    WebpageTracking.objects.create(webpage=get_webpage, user=get_user, interval='minute')
     assert get_webpage.get_latest_screenshot() is None
 
     run_every_minute()
@@ -69,7 +69,7 @@ def test_run_every_minute_no_webpages_tracked(caplog):
     """
     Test that run_every_minute logs info message when no webpages are being tracked
     """
-    assert Webpage.objects.exclude(minute__isnull=True).count() == 0
+    assert WebpageTracking.objects.filter(interval='minute').count() == 0
 
     with caplog.at_level(logging.INFO):
         run_every_minute()

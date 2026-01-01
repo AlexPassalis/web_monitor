@@ -4,7 +4,7 @@ set -euo pipefail
 MINIO_DOCKER_VOLUME="volume_web_monitor_minio"
 
 if docker volume inspect "$MINIO_DOCKER_VOLUME" >/dev/null 2>&1; then
-    echo "Docker volume \"$MINIO_DOCKER_VOLUME\" already exists."
+    echo "Docker volume \"$MINIO_DOCKER_VOLUME\" already exists"
 else
     docker volume create "$MINIO_DOCKER_VOLUME" >/dev/null
     echo "Docker volume \"$MINIO_DOCKER_VOLUME\" created."

@@ -71,25 +71,11 @@ class Webpage(models.Model):
         help_text='The URL of the webpage being tracked',
     )
 
-    minute = models.ManyToManyField(
+    users = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name='webpage_min',
-        blank=True,
-        help_text='Users tracking this webpage every 1 minute',
-    )
-
-    hour = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name='webpage_hour',
-        blank=True,
-        help_text='Users tracking this webpage every 1 hour',
-    )
-
-    day = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name='webpage_day',
-        blank=True,
-        help_text='Users tracking this webpage every 1 day',
+        through='WebpageTracking',
+        related_name='tracked_webpages',
+        help_text='Users tracking this webpage',
     )
 
     def get_latest_screenshot(self) -> 'WebpageScreenshot | None':
@@ -97,6 +83,92 @@ class Webpage(models.Model):
         Retrieves the most recent screenshot of the webpage
         """
         return self.screenshots.first()  # type: ignore[attr-defined]
+
+    def get_screenshots_created_at(
+        self,
+        limit: int | None = None,
+    ) -> list[str]:
+        """
+        Retrieves screenshot creation timestamps for the webpage,
+        optionally limited to the most recent ones,
+        formatted as 'YYYYMMDD_HHMMSS_microseconds'
+        """
+        created_at_datetime = self.screenshots.values_list('created_at', flat=True)[:limit]  # type: ignore[attr-defined]
+        screenshots_created_at: list[str] = []
+        for datetime in created_at_datetime:
+            screenshots_created_at.append(datetime.strftime('%Y%m%d_%H%M%S_%f'))
+        return screenshots_created_at
+
+
+class WebpageTracking(models.Model):
+    """
+    Tracks which users are monitoring which webpages at what interval
+    """
+
+    webpage = models.ForeignKey(
+        Webpage,
+        on_delete=models.CASCADE,
+        related_name='trackings',
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='webpage_trackings',
+    )
+
+    interval = models.CharField(
+        max_length=6,
+        choices=[
+            ('minute', 'minute'),
+            ('hour', 'hour'),
+            ('day', 'day'),
+        ],
+    )
+
+    def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
+        id = self.webpage.id
+        result = super().delete(*args, **kwargs)
+
+        if not WebpageTracking.objects.filter(webpage=self.webpage).exists():
+            self.cleanup_s3.apply_async(
+                args=(id,),
+                queue='low_priority',
+            )
+
+        return result
+
+    @staticmethod
+    @celery.shared_task
+    def cleanup_s3(webpage_id: int) -> None:
+        """
+        Delete all screenshots from S3 for a webpage and remove the webpage
+        """
+        if WebpageTracking.objects.filter(webpage_id=webpage_id).exists():  # Race condition check
+            return
+
+        storage = django.core.files.storage.default_storage
+        prefix = f'webpagescreenshots/{webpage_id}/'
+
+        _, files = storage.listdir(prefix)
+
+        for file_name in files:
+            file_path = f'{prefix}{file_name}'
+            storage.delete(file_path)
+
+        Webpage.objects.filter(id=webpage_id).delete()
+
+    class Meta:
+        constraints = [  # noqa: RUF012
+            models.UniqueConstraint(
+                fields=['webpage', 'user'],
+                name='unique_webpage_per_user',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(interval__in=['minute', 'hour', 'day']),
+                name='valid_interval',
+            ),
+        ]
 
 
 class ScreenshotResult(NamedTuple):

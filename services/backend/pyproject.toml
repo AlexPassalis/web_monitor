@@ -14,8 +14,10 @@ dependencies = [
     "celery[redis]~=5.5.3",
     "playwright~=1.55.0",
     "Pillow~=12.0.0",
+    "pillow-avif-plugin~=1.5.2",
     "ImageHash~=4.3.2",
     "django-storages[s3]~=1.14.6",
+
 ]
 
 [project.optional-dependencies]
