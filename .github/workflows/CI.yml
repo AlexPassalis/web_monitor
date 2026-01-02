@@ -59,6 +59,10 @@ jobs:
       - name: Copy coverage from container to host
         run: |
           CONTAINER_ID=$(docker ps -q -f "name=web_monitor_backend" | head -n 1)
+          if [ -z "$CONTAINER_ID" ]; then
+           echo "Backend container not found"
+           exit 1
+          fi
           docker cp $CONTAINER_ID:/tmp/coverage.xml ./services/backend/coverage.xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

@@ -125,7 +125,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           host: ${{ secrets.VPS_IP }}
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
-          source: "./bin/create_docker_network,./docker-stack.yaml,./services/db/.env,./services/backend/.env,./services/gateway/certs"
+          source: "./bin/create_docker_network,./docker-stack.yaml,./services/db/.env,./services/s3/.env,./services/backend/.env,./services/gateway/certs"
           target: "/home/${{ secrets.VPS_USER }}/web_monitor/"
 
       - name: Docker stack deploy

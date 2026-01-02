@@ -65,7 +65,7 @@ export default function Home() {
             navigate("/auth?mode=login")
           }
         } else if (err_csrf) {
-          console.error(err_webpage) // TODO better error handling
+          console.error(err_csrf) // TODO better error handling
         } else {
           csrf.current = data_csrf.csrfToken
           setWebpages(data_webpage)

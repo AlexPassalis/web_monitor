@@ -15,5 +15,9 @@ else
 fi
 
 CONTAINER_ID=$(docker ps -q -f "name=${SERVICE_NAME}" | head -n 1)
+if [[ -z "$CONTAINER_ID" ]]; then
+    echo "No running container found for service \"$SERVICE_NAME\""
+    exit 1
+fi
 
 docker exec $USE_TTY "$CONTAINER_ID" "$@"

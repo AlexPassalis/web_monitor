@@ -150,7 +150,10 @@ class WebpageMonitoring(models.Model):
         storage = django.core.files.storage.default_storage
         prefix = f'webpagescreenshots/{webpage_id}/'
 
-        _, files = storage.listdir(prefix)
+        try:
+            _, files = storage.listdir(prefix)
+        except FileNotFoundError:
+            files = []
 
         for file_name in files:
             file_path = f'{prefix}{file_name}'

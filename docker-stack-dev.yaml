@@ -115,9 +115,8 @@ services:
         failure_action: rollback
     image: minio/minio:latest
     command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minio_admin
-      MINIO_ROOT_PASSWORD: minio_password
+    env_file:
+      - ./services/s3/.env
     volumes:
       - minio:/data
     networks:

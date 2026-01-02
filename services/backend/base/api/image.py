@@ -52,44 +52,38 @@ def image_get(
     output_format = query.f
 
     try:
-        image_file = django.core.files.storage.default_storage.open(path, 'rb')
+        with django.core.files.storage.default_storage.open(path, 'rb') as image_file:
+            image: PILImage = Image.open(image_file)
+
+            if width or height:
+                image = resize_image(image, width, height)
+
+            output_buffer = io.BytesIO()
+            save_format, content_type = get_format_config(output_format)
+
+            if save_format in ['WEBP', 'AVIF']:
+                image.save(output_buffer, format=save_format, quality=quality, method=6)
+            elif save_format == 'JPEG':
+                if image.mode in ('RGBA', 'LA', 'P'):
+                    image = image.convert('RGB')
+                image.save(output_buffer, format=save_format, quality=quality, optimize=True)
+            else:
+                image.save(output_buffer, format=save_format, optimize=True)
+
+            output_buffer.seek(0)
     except FileNotFoundError:
         return 404, NotFoundResponse(detail='Image not found')
     except Exception as err:
         logger.error('Error opening image %s: %s', path, err)
         return 400, BadRequestResponse(detail='Error opening image: %s' % path)
 
-    try:
-        image: PILImage = Image.open(image_file)
-
-        if width or height:
-            image = resize_image(image, width, height)
-
-        output_buffer = io.BytesIO()
-        save_format, content_type = get_format_config(output_format)
-
-        if save_format in ['WEBP', 'AVIF']:
-            image.save(output_buffer, format=save_format, quality=quality, method=6)
-        elif save_format == 'JPEG':
-            if image.mode in ('RGBA', 'LA', 'P'):
-                image = image.convert('RGB')
-            image.save(output_buffer, format=save_format, quality=quality, optimize=True)
-        else:
-            image.save(output_buffer, format=save_format, optimize=True)
-
-        output_buffer.seek(0)
-        image_file.close()
-
-        return FileResponse(
-            output_buffer,
-            content_type=content_type,
-            headers={
-                'Cache-Control': 'public, max-age=31536000, immutable',
-            },
-        )
-    except Exception as err:
-        logger.error('Error processing image %s: %s', path, err)
-        return 400, BadRequestResponse(detail='Error processing image: %s' % path)
+    return FileResponse(
+        output_buffer,
+        content_type=content_type,
+        headers={
+            'Cache-Control': 'public, max-age=31536000, immutable',
+        },
+    )
 
 
 def resize_image(image: PILImage, width: int | None, height: int | None) -> PILImage:

@@ -80,6 +80,7 @@ RUN chmod 711 /root && \
     find /root/.cache -type f ! -executable -exec chmod 644 {} +
 
 COPY --chown=appuser:appuser . .
+RUN chmod +x /app/migrate
 
 USER appuser
 
