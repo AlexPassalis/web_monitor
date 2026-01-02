@@ -5,7 +5,7 @@ import pytest
 from ninja.testing import TestClient
 
 from base.api.webpage import router_webpage
-from base.models import Webpage, WebpageScreenshot, WebpageTracking
+from base.models import Webpage, WebpageMonitoring, WebpageScreenshot
 from base.tasks.tasks_beat import run_every_minute
 from conftest import TestValues
 
@@ -44,7 +44,7 @@ def test_run_every_minute_creates_screenshot_when_missing(get_user, get_webpage)
     """
     Test that run_every_minute triggers screenshot creation for webpages without screenshots
     """
-    WebpageTracking.objects.create(webpage=get_webpage, user=get_user, interval='minute')
+    WebpageMonitoring.objects.create(webpage=get_webpage, user=get_user, interval='minute')
     assert get_webpage.get_latest_screenshot() is None
 
     run_every_minute()
@@ -65,13 +65,13 @@ def test_run_every_minute_creates_screenshot_when_missing(get_user, get_webpage)
 
 
 @pytest.mark.django_db(transaction=True)
-def test_run_every_minute_no_webpages_tracked(caplog):
+def test_run_every_minute_no_webpages_monitored(caplog):
     """
-    Test that run_every_minute logs info message when no webpages are being tracked
+    Test that run_every_minute logs info message when no webpages are being monitored
     """
-    assert WebpageTracking.objects.filter(interval='minute').count() == 0
+    assert WebpageMonitoring.objects.filter(interval='minute').count() == 0
 
     with caplog.at_level(logging.INFO):
         run_every_minute()
 
-    assert 'There are no webpages being tracked every minute' in caplog.text
+    assert 'There are no webpages being monitored every minute' in caplog.text

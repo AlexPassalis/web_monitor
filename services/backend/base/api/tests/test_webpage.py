@@ -4,7 +4,7 @@ import pytest
 from ninja.testing import TestClient
 
 from base.api.webpage import router_webpage
-from base.models import User, Webpage, WebpageTracking
+from base.models import User, Webpage, WebpageMonitoring
 from conftest import TestValues
 
 client = TestClient(router_webpage)
@@ -32,10 +32,10 @@ def test_webpage_post_unauthorized():
         'http://example.com/' + 'a' * 2000,
     ],
 )
-@patch('base.models.WebpageScreenshot.save_screenshot.apply_async')
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
 def test_webpage_post_valid(mock_task, get_user, url):
     """
-    Test that valid URLs are accepted and tracked successfully
+    Test that valid URLs are accepted and monitored successfully
     """
     json_body = {'url': url, 'interval': TestValues.interval}
 
@@ -43,14 +43,14 @@ def test_webpage_post_valid(mock_task, get_user, url):
     assert response.status_code == 201
 
     response_data = response.json()
-    assert response_data['message'] == 'Webpage tracked successfully'
+    assert response_data['message'] == 'Webpage is now being monitored'
     assert response_data['url'] == url
     assert response_data['interval'] == TestValues.interval
     assert 'id' in response_data
 
     webpage = Webpage.objects.get(url=url)
     assert webpage.url == url
-    assert WebpageTracking.objects.filter(
+    assert WebpageMonitoring.objects.filter(
         webpage=webpage, user=get_user, interval=TestValues.interval
     ).exists()
 
@@ -112,7 +112,8 @@ def test_webpage_post_invalid(get_user, json_body, expected_json):
         ('monthly', 422),
     ],
 )
-def test_webpage_post_interval_validation(get_user, interval, status_code):
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
+def test_webpage_post_interval_validation(mock_task, get_user, interval, status_code):
     """
     Test that all valid intervals are accepted and invalid ones are rejected
     """
@@ -123,7 +124,8 @@ def test_webpage_post_interval_validation(get_user, interval, status_code):
 
 
 @pytest.mark.django_db
-def test_webpage_post_idempotent_same_interval(get_user):
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
+def test_webpage_post_idempotent_same_interval(mock_task, get_user):
     """
     Test that adding the same URL with the same interval twice is idempotent
     """
@@ -133,19 +135,20 @@ def test_webpage_post_idempotent_same_interval(get_user):
     assert response_1.status_code == 201
 
     response_2 = client.request(method='POST', path=path, json=json_body, user=get_user)
-    assert response_2.status_code == 201
+    assert response_2.status_code == 200
 
     webpage = Webpage.objects.get(url=TestValues.url)
-    assert WebpageTracking.objects.filter(webpage=webpage, user=get_user).count() == 1
-    assert WebpageTracking.objects.filter(
+    assert WebpageMonitoring.objects.filter(webpage=webpage, user=get_user).count() == 1
+    assert WebpageMonitoring.objects.filter(
         webpage=webpage, user=get_user, interval='minute'
     ).exists()
 
 
 @pytest.mark.django_db
-def test_webpage_post_same_user_different_intervals(get_user):
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
+def test_webpage_post_same_user_different_intervals(mock_task, get_user):
     """
-    Test that a user can update tracking interval for the same URL
+    Test that a user can update monitoring interval for the same URL
     """
     json_body_minute = {'url': TestValues.url, 'interval': 'minute'}
     json_body_hour = {'url': TestValues.url, 'interval': 'hour'}
@@ -155,20 +158,21 @@ def test_webpage_post_same_user_different_intervals(get_user):
     assert response_1.status_code == 201
 
     response_2 = client.request(method='POST', path=path, json=json_body_hour, user=get_user)
-    assert response_2.status_code == 201
+    assert response_2.status_code == 200
 
     response_3 = client.request(method='POST', path=path, json=json_body_day, user=get_user)
-    assert response_3.status_code == 201
+    assert response_3.status_code == 200
 
     webpage = Webpage.objects.get(url=TestValues.url)
-    assert WebpageTracking.objects.filter(webpage=webpage, user=get_user).count() == 1
-    assert WebpageTracking.objects.filter(webpage=webpage, user=get_user, interval='day').exists()
+    assert WebpageMonitoring.objects.filter(webpage=webpage, user=get_user).count() == 1
+    assert WebpageMonitoring.objects.filter(webpage=webpage, user=get_user, interval='day').exists()
 
 
 @pytest.mark.django_db
-def test_webpage_post_multiple_users_same_url(get_user):
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
+def test_webpage_post_multiple_users_same_url(mock_task, get_user):
     """
-    Test that different users can track the same URL
+    Test that different users can monitor the same URL
     """
     user_2 = User.objects.create_user(username='testuser2', password='ValidPass123!')
 
@@ -181,17 +185,20 @@ def test_webpage_post_multiple_users_same_url(get_user):
     assert response_2.status_code == 201
 
     webpage = Webpage.objects.get(url=TestValues.url)
-    assert WebpageTracking.objects.filter(webpage=webpage, interval='minute').count() == 2
-    assert WebpageTracking.objects.filter(
+    assert WebpageMonitoring.objects.filter(webpage=webpage, interval='minute').count() == 2
+    assert WebpageMonitoring.objects.filter(
         webpage=webpage, user=get_user, interval='minute'
     ).exists()
-    assert WebpageTracking.objects.filter(webpage=webpage, user=user_2, interval='minute').exists()
+    assert WebpageMonitoring.objects.filter(
+        webpage=webpage, user=user_2, interval='minute'
+    ).exists()
 
 
 @pytest.mark.django_db
-def test_webpage_post_user_added_to_correct_interval_group(get_user):
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
+def test_webpage_post_user_added_to_correct_interval_group(mock_task, get_user):
     """
-    Test that user is added to the correct interval in WebpageTracking
+    Test that user is added to the correct interval in WebpageMonitoring
     """
     json_body_minute = {'url': 'http://example1.com/', 'interval': 'minute'}
     json_body_hour = {'url': 'http://example2.com/', 'interval': 'hour'}
@@ -199,43 +206,43 @@ def test_webpage_post_user_added_to_correct_interval_group(get_user):
 
     client.request(method='POST', path=path, json=json_body_minute, user=get_user)
     webpage_minute = Webpage.objects.get(url='http://example1.com/')
-    assert WebpageTracking.objects.filter(
+    assert WebpageMonitoring.objects.filter(
         webpage=webpage_minute, user=get_user, interval='minute'
     ).exists()
-    assert not WebpageTracking.objects.filter(
+    assert not WebpageMonitoring.objects.filter(
         webpage=webpage_minute, user=get_user, interval='hour'
     ).exists()
-    assert not WebpageTracking.objects.filter(
+    assert not WebpageMonitoring.objects.filter(
         webpage=webpage_minute, user=get_user, interval='day'
     ).exists()
 
     client.request(method='POST', path=path, json=json_body_hour, user=get_user)
     webpage_hour = Webpage.objects.get(url='http://example2.com/')
-    assert not WebpageTracking.objects.filter(
+    assert not WebpageMonitoring.objects.filter(
         webpage=webpage_hour, user=get_user, interval='minute'
     ).exists()
-    assert WebpageTracking.objects.filter(
+    assert WebpageMonitoring.objects.filter(
         webpage=webpage_hour, user=get_user, interval='hour'
     ).exists()
-    assert not WebpageTracking.objects.filter(
+    assert not WebpageMonitoring.objects.filter(
         webpage=webpage_hour, user=get_user, interval='day'
     ).exists()
 
     client.request(method='POST', path=path, json=json_body_day, user=get_user)
     webpage_day = Webpage.objects.get(url='http://example3.com/')
-    assert not WebpageTracking.objects.filter(
+    assert not WebpageMonitoring.objects.filter(
         webpage=webpage_day, user=get_user, interval='minute'
     ).exists()
-    assert not WebpageTracking.objects.filter(
+    assert not WebpageMonitoring.objects.filter(
         webpage=webpage_day, user=get_user, interval='hour'
     ).exists()
-    assert WebpageTracking.objects.filter(
+    assert WebpageMonitoring.objects.filter(
         webpage=webpage_day, user=get_user, interval='day'
     ).exists()
 
 
 @pytest.mark.django_db
-@patch('base.models.WebpageScreenshot.save_screenshot.apply_async')
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
 def test_webpage_post_task_triggered_on_new_webpage(mock_task, get_user):
     """
     Test that save_screenshot task is triggered only when webpage is created
@@ -250,7 +257,7 @@ def test_webpage_post_task_triggered_on_new_webpage(mock_task, get_user):
 
 
 @pytest.mark.django_db
-@patch('base.models.WebpageScreenshot.save_screenshot.apply_async')
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
 def test_webpage_post_task_not_triggered_on_existing_webpage(mock_task, get_user):
     """
     Test that task is not triggered when webpage already exists
@@ -290,9 +297,9 @@ def test_webpage_get_by_interval(get_user, interval):
     webpage_hour = Webpage.objects.create(url='http://hour.com/')
     webpage_day = Webpage.objects.create(url='http://day.com/')
 
-    WebpageTracking.objects.create(webpage=webpage_min, user=get_user, interval='minute')
-    WebpageTracking.objects.create(webpage=webpage_hour, user=get_user, interval='hour')
-    WebpageTracking.objects.create(webpage=webpage_day, user=get_user, interval='day')
+    WebpageMonitoring.objects.create(webpage=webpage_min, user=get_user, interval='minute')
+    WebpageMonitoring.objects.create(webpage=webpage_hour, user=get_user, interval='hour')
+    WebpageMonitoring.objects.create(webpage=webpage_day, user=get_user, interval='day')
 
     query_path = f'{path}?interval={interval}' if interval is not None else path
     response = client.request(method='GET', path=query_path, user=get_user)

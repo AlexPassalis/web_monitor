@@ -6,6 +6,7 @@ import django.core.files.storage
 from django.http import FileResponse, HttpRequest
 from ninja import Query, Router, Schema
 from PIL import Image
+from PIL.Image import Image as PILImage
 from pydantic import Field
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,7 @@ def image_get(
         return 400, BadRequestResponse(detail='Error opening image: %s' % path)
 
     try:
-        image = Image.open(image_file)
+        image: PILImage = Image.open(image_file)
 
         if width or height:
             image = resize_image(image, width, height)
@@ -91,7 +92,7 @@ def image_get(
         return 400, BadRequestResponse(detail='Error processing image: %s' % path)
 
 
-def resize_image(image: Image.Image, width: int | None, height: int | None) -> Image.Image:
+def resize_image(image: PILImage, width: int | None, height: int | None) -> PILImage:
     """
     Resize image while maintaining aspect ratio
     """

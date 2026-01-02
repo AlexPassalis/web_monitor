@@ -96,12 +96,20 @@ export default function Home() {
           modal_data.current = undefined
         }}
         title={
-          modal_data.current &&
-          (modal_data.current.type === "screenshots"
-            ? modal_data.current.webpage.url
-            : modal_data.current.type === "delete"
-            ? "Webpage removal confirmation"
-            : undefined)
+          modal_data.current && (
+            <Text size="xl">
+              {modal_data.current.type === "screenshots" ? (
+                <>
+                  Screenshots of{" "}
+                  <Text span c="blue">
+                    {modal_data.current.webpage.url}
+                  </Text>
+                </>
+              ) : (
+                "Webpage removal confirmation"
+              )}
+            </Text>
+          )
         }
         centered
         size={
@@ -117,21 +125,43 @@ export default function Home() {
           blur: 2,
         }}
         transitionProps={{ transition: "scale" }}
+        styles={{ title: { width: "100%", textAlign: "center" } }}
       >
         {modal_data.current && (
           <>
             {modal_data.current.type === "screenshots" && (
-              <Carousel>
+              <Carousel
+                withIndicators
+                withControls
+                controlSize={40}
+                controlsOffset="lg"
+                height="70vh"
+                slideGap="md"
+                slideSize="100%"
+                emblaOptions={{ loop: false }}
+                styles={{
+                  control: {
+                    backgroundColor: "white",
+                    color: "black",
+                  },
+                }}
+              >
                 {modal_data.current.webpage.screenshots.map((timestamp) => {
                   const id = modal_data.current?.webpage.id
                   const url = modal_data.current?.webpage.url
                   const path = `webpagescreenshots/${id}/${timestamp}.png`
                   return (
                     <Carousel.Slide key={path}>
-                      <Image
-                        src={path}
-                        alt={`Webpagescreenshot of ${url} at ${timestamp}`}
-                      />
+                      <Flex direction="column" align="center">
+                        <Image
+                          src={path}
+                          alt={`Webpagescreenshot of ${url} at ${timestamp}`}
+                          className="w-full max-h-[62vh] object-contain"
+                        />
+                        <Text ta="center" size="lg" mt="md">
+                          {timestamp}
+                        </Text>
+                      </Flex>
                     </Carousel.Slide>
                   )
                 })}
@@ -228,51 +258,57 @@ export default function Home() {
                     {url}
                   </a>
                 </Table.Td>
-                <Table.Td onClick={(event) => event.stopPropagation()} pl={5}>
-                  <Select
-                    value={interval}
-                    data={["minute", "hour", "day"]}
-                    allowDeselect={false}
-                    onChange={async (value) => {
-                      const new_interval = value as "minute" | "hour" | "day"
-                      try {
-                        const { error: err, data } = await fetch.POST(
-                          "/api/webpage",
-                          {
-                            headers: {
-                              "X-CSRFToken": csrf.current,
-                            },
-                            body: {
-                              url,
-                              interval: new_interval,
-                            },
-                          }
-                        )
+                <Table.Td pl={5}>
+                  <div
+                    onClick={(event) => event.stopPropagation()}
+                    style={{ display: "inline-block" }}
+                  >
+                    <Select
+                      value={interval}
+                      data={["minute", "hour", "day"]}
+                      allowDeselect={false}
+                      onChange={async (value) => {
+                        const new_interval = value as "minute" | "hour" | "day"
 
-                        if (err) {
-                          console.error(err) // TODO better error handling
-                        } else {
-                          setWebpages((prev) =>
-                            prev.map((webpage) =>
-                              webpage.url === url
-                                ? { ...webpage, interval: new_interval }
-                                : webpage
-                            )
+                        try {
+                          const { error: err, data } = await fetch.POST(
+                            "/api/webpage",
+                            {
+                              headers: {
+                                "X-CSRFToken": csrf.current,
+                              },
+                              body: {
+                                url,
+                                interval: new_interval,
+                              },
+                            }
                           )
-                          notifications.show({
-                            message: `Webpage "${data.url}" is now being monitored every "${data.interval}", instead of every "${interval}".`,
-                            withCloseButton: false,
-                            autoClose: 3000,
-                            color: "green",
-                          })
+
+                          if (err) {
+                            console.error(err) // TODO better error handling
+                          } else {
+                            setWebpages((prev) =>
+                              prev.map((webpage) =>
+                                webpage.url === url
+                                  ? { ...webpage, interval: new_interval }
+                                  : webpage
+                              )
+                            )
+                            notifications.show({
+                              message: `Webpage "${data.url}" is now being monitored every "${data.interval}", instead of every "${interval}".`,
+                              withCloseButton: false,
+                              autoClose: 3000,
+                              color: "green",
+                            })
+                          }
+                        } catch (err) {
+                          console.error(err) // TODO better error handling
                         }
-                      } catch (err) {
-                        console.error(err) // TODO better error handling
-                      }
-                    }}
-                    style={{ maxWidth: "120px" }}
-                    styles={{ input: { paddingLeft: "6px" } }}
-                  />
+                      }}
+                      style={{ maxWidth: "120px" }}
+                      styles={{ input: { paddingLeft: "6px" } }}
+                    />
+                  </div>
                 </Table.Td>
                 <Table.Td ta="center">{screenshots.length}</Table.Td>
                 <Table.Td ta="center">
@@ -299,6 +335,24 @@ export default function Home() {
                 <form
                   id="form_create_webpage"
                   onSubmit={form.onSubmit(async (form_values) => {
+                    if (
+                      webpages.find(
+                        (webpage) =>
+                          webpage.url.replace(/\/$/, "") ===
+                          form_values.url.replace(/\/$/, "")
+                      )
+                    ) {
+                      form.setFieldError("url", "Already being monitored")
+                      notifications.show({
+                        message: `Webpage "${form_values.url}" is already being monitored.`,
+                        withCloseButton: false,
+                        autoClose: 3000,
+                        color: "red",
+                      })
+
+                      return
+                    }
+
                     try {
                       const { error: err, data } = await fetch.POST(
                         "/api/webpage",

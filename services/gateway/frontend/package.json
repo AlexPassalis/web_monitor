@@ -11,10 +11,9 @@
     "fix": "bunx eslint src --ext .ts,.tsx --fix",
     "check": "bunx tsc --noEmit",
     "openapi": "npx openapi-typescript http://localhost:8000/api/openapi.json -o ./src/lib/openapi/schema.d.ts",
-    "test": "bunx playwright test",
     "dev": "bun --hot src/index.ts",
-    "build": "bun run build.ts",
-    "start": "bun src/index.ts"
+    "test": "bunx playwright test",
+    "build": "bun build src/main.tsx --outdir=dist --target=browser --format=iife --minify --sourcemap=linked --plugins=bun-plugin-tailwind"
   },
   "dependencies": {
     "@mantine/carousel": "~8.3.10",

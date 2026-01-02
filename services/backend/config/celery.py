@@ -16,5 +16,5 @@ app.autodiscover_tasks()
 app.conf.imports = ('base.tasks.tasks_beat',)
 
 app.conf.worker_prefetch_multiplier = 1
-app.conf.worker_concurrency = 1
+app.conf.worker_concurrency = 2
 app.conf.worker_pool = 'threads'

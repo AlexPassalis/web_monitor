@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.test import Client
 
@@ -38,7 +40,8 @@ def test_csrf_tokens_different_between_requests(auth_client):
 
 
 @pytest.mark.django_db
-def test_csrf_protection_on_authenticated_endpoint(get_user):
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
+def test_csrf_protection_on_authenticated_endpoint(mock_task, get_user):
     """
     Test CSRF protection on authenticated endpoints
     """
@@ -68,4 +71,4 @@ def test_csrf_protection_on_authenticated_endpoint(get_user):
         HTTP_X_CSRFTOKEN=csrf_token,
     )
     assert response_with_token.status_code == 201
-    assert response_with_token.json()['message'] == 'Webpage tracked successfully'
+    assert response_with_token.json()['message'] == 'Webpage is now being monitored'

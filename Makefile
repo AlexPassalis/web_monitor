@@ -2,11 +2,11 @@ SHELL = /usr/bin/env bash -euo pipefail
 MAKEFLAGS += --no-print-directory
 LATESTDUMP = latest.dump
 
-COMPOSE_NAME = web_monitor
+STACK_NAME = web_monitor
 FRONTEND_SERVICE_NAME = frontend
 BACKEND_SERVICE_NAME = backend
 
-.PHONY: default init start stop install lint check_type check fix test test_coverage show_git_crypt install_backend start_backend stop_backend lint_backend fix_backend check_type_backend test_backend test_backend_coverage makemigrations migrate check_missing_migrations create_superuser install_frontend start_frontend stop_frontend lint_frontend fix_frontend check_type_frontend test_frontend 
+.PHONY: default init start stop install lint check_type check fix test test_coverage show_git_crypt install_backend start_backend stop_backend lint_backend fix_backend check_type_backend test_backend test_backend_coverage makemigrations migrate check_missing_migrations create_superuser install_frontend start_frontend stop_frontend lint_frontend fix_frontend check_type_frontend test_frontend
 
 default: start
 
@@ -14,25 +14,32 @@ init:
 	@echo "==> Initializing git hooks"
 	git config core.hooksPath bin/.githooks
 
-build:
-	@echo "==> Building docker images"
-	docker compose -p ${COMPOSE_NAME} -f docker-compose.yml -f docker-compose.dev.yml build
+build_dev:
+	@echo "==> Building docker images (development)"
+	docker build -t web_monitor-db -f ./services/db/Dockerfile ./services/db
+	docker build -t web_monitor-cache -f ./services/cache/Dockerfile ./services/cache
+	docker build --target dev -t web_monitor-backend -f ./services/backend/Dockerfile ./services/backend
+	docker build --target dev -t web_monitor-gateway -f ./services/gateway/Dockerfile ./services/gateway
 
-build_no_cache:
-	@echo "==> Building docker images without cache"
-	docker compose -p ${COMPOSE_NAME} -f docker-compose.yml -f docker-compose.dev.yml build --no-cache
+build_dev_no_cache:
+	@echo "==> Building docker images without cache (development)"
+	docker build --no-cache -t web_monitor-db -f ./services/db/Dockerfile ./services/db
+	docker build --no-cache -t web_monitor-cache -f ./services/cache/Dockerfile ./services/cache
+	docker build --no-cache --target dev -t web_monitor-backend -f ./services/backend/Dockerfile ./services/backend
+	docker build --no-cache --target dev -t web_monitor-gateway -f ./services/gateway/Dockerfile ./services/gateway
 
 start:
-	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -eq 0 ]; then \
+	@if [ "$$(docker stack services ${STACK_NAME} -q 2>/dev/null | wc -l)" -eq 0 ]; then \
+		${MAKE} build_dev; \
 		${MAKE} start_backend; \
 		${MAKE} start_frontend; \
 	else \
-		echo "Docker compose \"${COMPOSE_NAME}\" is already running."; \
+		echo "Docker stack \"${STACK_NAME}\" is already running."; \
 	fi
 
 stop:
-	@if [ "$$(docker compose -p ${COMPOSE_NAME} ps -q 2>/dev/null | wc -l)" -eq 0 ]; then \
-		echo "Docker compose \"${COMPOSE_NAME}\" is not running."; \
+	@if [ "$$(docker stack services ${STACK_NAME} -q 2>/dev/null | wc -l)" -eq 0 ]; then \
+		echo "Docker stack \"${STACK_NAME}\" is not running."; \
 	else \
 		${MAKE} stop_backend; \
 		${MAKE} stop_frontend; \
@@ -74,16 +81,13 @@ install_backend:
 	@cd services/backend && uv sync --extra dev
 
 start_backend:
-	@bin/create_postgres_volume
-	@bin/create_valkey_volume
-	@bin/create_minio_volume
 	@bin/create_docker_network
-	@echo "==> Starting backend services"
-	@docker compose -p ${COMPOSE_NAME} -f docker-compose.yml -f docker-compose.dev.yml up -d --wait
+	@echo "==> Starting Docker services for ${STACK_NAME} stack"
+	@docker stack deploy -c docker-stack-dev.yaml --detach=false --with-registry-auth ${STACK_NAME}
 
 stop_backend:
-	@echo "==> Stopping backend services"
-	@docker compose -p ${COMPOSE_NAME} down
+	@echo "==> Removing Docker services for ${STACK_NAME} stack"
+	@docker stack rm ${STACK_NAME}
 
 lint_backend:
 	@echo "==> Linting inside \"${BACKEND_SERVICE_NAME}\" service"
@@ -162,3 +166,7 @@ check_type_frontend:
 test_frontend:
 	@echo "==> Running tests in frontend on host"
 	@bin/in_frontend bun run test
+
+build_frontend:
+	@echo "==> Building frontend on host"
+	@bin/in_frontend bun run build

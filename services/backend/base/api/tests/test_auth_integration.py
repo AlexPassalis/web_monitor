@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.test import Client
 
@@ -36,7 +38,8 @@ def test_complete_user_journey(auth_client):
 
 
 @pytest.mark.django_db
-def test_session_persistence_across_requests(get_user):
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
+def test_session_persistence_across_requests(mock_task, get_user):
     """
     Test that session persists across multiple authenticated requests
     """

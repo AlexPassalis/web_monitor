@@ -92,16 +92,16 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get tracked webpages
-         * @description Get all webpages that the user is tracking for the specified interval or all intervals
+         * Get webpages being monitored by the user
+         * @description Get all webpages that the user is monitoring for the specified interval or all intervals
          */
         get: operations["base_api_webpage_webpage_get"];
         put?: never;
-        /** Add new webpage to track */
+        /** Add a webpage to be monitored or update its interval */
         post: operations["base_api_webpage_webpage_post"];
         /**
-         * Remove webpage from being tracked
-         * @description Remove a webpage from user's tracking list
+         * Remove a webpage from being monitored by the user
+         * @description Remove a webpage from user's monitoring list
          */
         delete: operations["base_api_webpage_webpage_delete"];
         options?: never;
@@ -179,13 +179,10 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
-        /** TrackResponse */
-        TrackResponse: {
-            /**
-             * Message
-             * @constant
-             */
-            message: "Webpage tracked successfully";
+        /** MonitorResponse */
+        MonitorResponse: {
+            /** Message */
+            message: string;
             /**
              * Interval
              * @enum {string}
@@ -196,8 +193,8 @@ export interface components {
             /** Id */
             id: number;
         };
-        /** TrackRequest */
-        TrackRequest: {
+        /** MonitorRequest */
+        MonitorRequest: {
             /**
              * Url
              * Format: uri
@@ -234,7 +231,7 @@ export interface components {
              * Message
              * @constant
              */
-            message: "Webpage tracking removed successfully";
+            message: "Webpage monitoring removed successfully";
             /** Id */
             id: number;
             /** Url */
@@ -427,17 +424,26 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TrackRequest"];
+                "application/json": components["schemas"]["MonitorRequest"];
             };
         };
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonitorResponse"];
+                };
+            };
             /** @description Created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TrackResponse"];
+                    "application/json": components["schemas"]["MonitorResponse"];
                 };
             };
             /** @description Unauthorized */

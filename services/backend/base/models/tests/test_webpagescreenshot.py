@@ -45,7 +45,7 @@ def test_save_screenshot(get_webpage):
     """
     Test that save_screenshot creates a screenshot record and uploads to S3
     """
-    WebpageScreenshot.save_screenshot(get_webpage.id)
+    async_to_sync(WebpageScreenshot.save_screenshot)(get_webpage.id)
 
     webpagescreenshot = WebpageScreenshot.objects.get(webpage=get_webpage)
     assert webpagescreenshot.perceptual_hash is not None
@@ -129,7 +129,7 @@ def test_take_screenshot_timeout_error(mock_get_browser):
     Test that take_screenshot returns None when page.goto times out
     """
     mock_page = AsyncMock()
-    mock_page.goto.side_effect = playwright.async_api.TimeoutError('Timeout 30000ms exceeded')
+    mock_page.goto.side_effect = playwright.async_api.TimeoutError('Timeout 10000ms exceeded')
 
     mock_context = AsyncMock()
     mock_context.new_page.return_value = mock_page

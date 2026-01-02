@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SERVICE_NAME="backend"
+SERVICE_NAME="web_monitor_backend"
 
-if ! docker compose ps -q "$SERVICE_NAME" | grep -q .; then
+if ! docker service ps "$SERVICE_NAME" -q 2>/dev/null | grep -q .; then
     echo "\"$SERVICE_NAME\" service is not running."
     make start
 fi
@@ -11,7 +11,9 @@ fi
 if tty -s; then
     USE_TTY="-it"
 else
-    USE_TTY="-T"
+    USE_TTY="-i"
 fi
 
-BUILDKIT_PROGRESS=plain docker compose exec $USE_TTY "$SERVICE_NAME" "$@"
+CONTAINER_ID=$(docker ps -q -f "name=${SERVICE_NAME}" | head -n 1)
+
+docker exec $USE_TTY "$CONTAINER_ID" "$@"

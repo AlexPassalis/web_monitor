@@ -1,3 +1,4 @@
+import asyncio
 import io
 import logging
 from typing import NamedTuple
@@ -8,7 +9,6 @@ import django.core.files.storage
 import imagehash
 import PIL.Image
 import playwright.async_api
-from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager as BaseUserManager
@@ -60,7 +60,7 @@ class User(AbstractUser):
 
 class Webpage(models.Model):
     """
-    Represents a webpage that is being tracked for changes
+    Represents a webpage that is being monitored for changes
     """
 
     id = models.AutoField(primary_key=True)
@@ -68,14 +68,14 @@ class Webpage(models.Model):
     url = models.URLField(
         max_length=2048,
         unique=True,
-        help_text='The URL of the webpage being tracked',
+        help_text='The URL of the webpage being monitored',
     )
 
-    users = models.ManyToManyField(
+    users = models.ManyToManyField(  # type: ignore[var-annotated]
         settings.AUTH_USER_MODEL,
-        through='WebpageTracking',
-        related_name='tracked_webpages',
-        help_text='Users tracking this webpage',
+        through='WebpageMonitoring',
+        related_name='monitored_webpages',
+        help_text='Users monitoring this webpage',
     )
 
     def get_latest_screenshot(self) -> 'WebpageScreenshot | None':
@@ -100,21 +100,21 @@ class Webpage(models.Model):
         return screenshots_created_at
 
 
-class WebpageTracking(models.Model):
+class WebpageMonitoring(models.Model):
     """
-    Tracks which users are monitoring which webpages at what interval
+    Represents which users are monitoring which webpages at what interval
     """
 
     webpage = models.ForeignKey(
         Webpage,
         on_delete=models.CASCADE,
-        related_name='trackings',
+        related_name='monitorings',
     )
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='webpage_trackings',
+        related_name='webpage_monitorings',
     )
 
     interval = models.CharField(
@@ -130,7 +130,7 @@ class WebpageTracking(models.Model):
         id = self.webpage.id
         result = super().delete(*args, **kwargs)
 
-        if not WebpageTracking.objects.filter(webpage=self.webpage).exists():
+        if not WebpageMonitoring.objects.filter(webpage=self.webpage).exists():
             self.cleanup_s3.apply_async(
                 args=(id,),
                 queue='low_priority',
@@ -144,7 +144,7 @@ class WebpageTracking(models.Model):
         """
         Delete all screenshots from S3 for a webpage and remove the webpage
         """
-        if WebpageTracking.objects.filter(webpage_id=webpage_id).exists():  # Race condition check
+        if WebpageMonitoring.objects.filter(webpage_id=webpage_id).exists():  # Race condition check
             return
 
         storage = django.core.files.storage.default_storage
@@ -204,29 +204,33 @@ class WebpageScreenshot(models.Model):
         ordering = ['-created_at']  # noqa: RUF012
 
     @staticmethod
-    @celery.shared_task
-    def save_screenshot(webpage_id: int) -> None:
+    async def save_screenshot(webpage_id: int) -> None:
         """
         Take screenshot of webpage and save if changed
         """
-        webpage = Webpage.objects.get(id=webpage_id)
+        webpage = await asyncio.to_thread(Webpage.objects.get, id=webpage_id)
 
-        result = async_to_sync(WebpageScreenshot.take_screenshot)(url=webpage.url)
+        result = await WebpageScreenshot.take_screenshot(url=webpage.url)
         if result is None:
             return
 
-        latest_screenshot = webpage.get_latest_screenshot()
+        latest_screenshot = await asyncio.to_thread(webpage.get_latest_screenshot)
         if latest_screenshot and latest_screenshot.perceptual_hash == result.perceptual_hash:
             return
 
-        webpagescreenshot = WebpageScreenshot.objects.create(
+        webpagescreenshot = await asyncio.to_thread(
+            WebpageScreenshot.objects.create,
             webpage_id=webpage.id,
             perceptual_hash=result.perceptual_hash,
         )
 
         timestamp = webpagescreenshot.created_at.strftime('%Y%m%d_%H%M%S_%f')
         file_path = f'webpagescreenshots/{webpage.id}/{timestamp}.png'
-        WebpageScreenshot.upload_screenshot_to_s3(result.screenshot, file_path)
+        await asyncio.to_thread(
+            WebpageScreenshot.upload_screenshot_to_s3,
+            result.screenshot,
+            file_path,
+        )
 
         logger.info('New screenshot saved for webpage with url: %s', webpage.url)
 
@@ -236,11 +240,11 @@ class WebpageScreenshot(models.Model):
         Take screenshot of webpage and return perceptual hash + screenshot
         """
         browser = await get_browser()
-        context = await browser.new_context()
+        context = await browser.new_context(viewport={'width': 1920, 'height': 1080})
         page = await context.new_page()
 
         try:
-            response = await page.goto(url, wait_until='load', timeout=30000)
+            response = await page.goto(url, wait_until='networkidle', timeout=10000)
             if response and not response.ok:
                 logger.error(
                     'WebpageScreenshot.take_screenshot url:%s bad response: %s',
@@ -249,7 +253,11 @@ class WebpageScreenshot(models.Model):
                 )
                 return None
 
-            screenshot = await page.screenshot(full_page=True)
+            screenshot = await page.screenshot(
+                full_page=True,
+                animations='disabled',
+                caret='hide',
+            )
 
             image = PIL.Image.open(io.BytesIO(screenshot))
             perceptual_hash = imagehash.phash(image)

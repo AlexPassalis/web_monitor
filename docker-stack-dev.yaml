@@ -3,18 +3,19 @@ networks:
     external: true
 
 volumes:
-  volume_web_monitor_postgres:
-    external: true
-  volume_web_monitor_valkey:
-    external: true
-  volume_web_monitor_minio:
-    external: true
+  postgres:
+  valkey:
+  minio:
 
 services:
   dozzle:
-    container_name: dozzle
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
     image: amir20/dozzle:master
-    restart: always
     networks:
       - network_web_monitor
     environment:
@@ -32,15 +33,17 @@ services:
       retries: 2
 
   db:
-    container_name: db
-    build:
-      context: ./services/db
-      dockerfile: Dockerfile
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: web_monitor-db
     env_file:
       - ./services/db/.env
-    restart: always
     volumes:
-      - volume_web_monitor_postgres:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql/data
     networks:
       - network_web_monitor
     ports:
@@ -57,12 +60,13 @@ services:
       retries: 2
 
   pgweb:
-    container_name: pgweb
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
     image: sosedoff/pgweb:latest
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: always
     networks:
       - network_web_monitor
     env_file:
@@ -82,13 +86,15 @@ services:
       retries: 2
 
   cache:
-    container_name: cache
-    build:
-      context: ./services/cache
-      dockerfile: Dockerfile
-    restart: always
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: web_monitor-cache
     volumes:
-      - volume_web_monitor_valkey:/data
+      - valkey:/data
     networks:
       - network_web_monitor
     ports:
@@ -101,15 +107,19 @@ services:
       retries: 2
 
   s3:
-    container_name: s3
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minio_admin
       MINIO_ROOT_PASSWORD: minio_password
-    restart: always
     volumes:
-      - volume_web_monitor_minio:/data
+      - minio:/data
     networks:
       - network_web_monitor
     ports:
@@ -123,21 +133,15 @@ services:
       retries: 2
 
   backend:
-    container_name: backend
-    depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_healthy
-      s3:
-        condition: service_healthy
-    build:
-      context: ./services/backend
-      dockerfile: Dockerfile
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: web_monitor-backend
     env_file:
       - ./services/backend/.env
-    tty: true
-    restart: always
     volumes:
       - ./services/backend:/app
       - /app/.venv
@@ -153,21 +157,16 @@ services:
       retries: 2
 
   celery_beat:
-    container_name: celery_beat
-    depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_healthy
-      s3:
-        condition: service_healthy
-    build:
-      context: ./services/backend
-      dockerfile: Dockerfile
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: web_monitor-backend
     command: uv run watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config beat --loglevel=info
     env_file:
       - ./services/backend/.env
-    restart: always
     volumes:
       - ./services/backend:/app
       - /app/.venv
@@ -175,22 +174,17 @@ services:
       - network_web_monitor
 
   celery_worker:
-    container_name: celery_worker
-    depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_healthy
-      s3:
-        condition: service_healthy
-    build:
-      context: ./services/backend
-      dockerfile: Dockerfile
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: web_monitor-backend
     user: appuser
     command: uv run watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info -E
     env_file:
       - ./services/backend/.env
-    restart: always
     volumes:
       - ./services/backend:/app
       - /app/.venv
@@ -208,20 +202,22 @@ services:
       retries: 2
 
   gateway:
-    container_name: gateway
-    depends_on:
-      backend:
-        condition: service_healthy
-    build:
-      context: ./services/gateway
-      dockerfile: Dockerfile
-    restart: always
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: stop-first
+        failure_action: rollback
+    image: web_monitor-gateway
     volumes:
       - ./services/gateway/certs:/etc/nginx/certs:ro
     networks:
       - network_web_monitor
     ports:
-      - "443:443"
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:

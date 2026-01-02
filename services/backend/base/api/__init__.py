@@ -10,7 +10,7 @@ from .webpage import router_webpage
 api = NinjaAPI(
     title='Backend API Service',
     version='0.0.1',
-    description='API for tracking webpage changes',
+    description='API for monitoring webpage changes',
 )
 
 api.add_router('', router_favicon)

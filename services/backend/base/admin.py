@@ -1,10 +1,10 @@
 from django.contrib import admin
 
-from base.models import Webpage, WebpageScreenshot, WebpageTracking
+from base.models import Webpage, WebpageMonitoring, WebpageScreenshot
 
 
-class WebpageTrackingInline(admin.TabularInline):
-    model = WebpageTracking
+class WebpageMonitoringInline(admin.TabularInline):
+    model = WebpageMonitoring
     extra = 1
 
 
@@ -13,19 +13,19 @@ class WebpageAdmin(admin.ModelAdmin):
     list_display = ('url', 'minute_count', 'hour_count', 'day_count')
     search_fields = ('url',)
     fields = ('url',)
-    inlines = [WebpageTrackingInline]  # noqa: RUF012
+    inlines = [WebpageMonitoringInline]  # noqa: RUF012
 
     @admin.display(description='minute Users')
     def minute_count(self, obj: Webpage) -> int:
-        return obj.trackings.filter(interval='minute').count()  # type: ignore[attr-defined]
+        return obj.monitorings.filter(interval='minute').count()  # type: ignore[attr-defined]
 
     @admin.display(description='hour Users')
     def hour_count(self, obj: Webpage) -> int:
-        return obj.trackings.filter(interval='hour').count()  # type: ignore[attr-defined]
+        return obj.monitorings.filter(interval='hour').count()  # type: ignore[attr-defined]
 
     @admin.display(description='day Users')
     def day_count(self, obj: Webpage) -> int:
-        return obj.trackings.filter(interval='day').count()  # type: ignore[attr-defined]
+        return obj.monitorings.filter(interval='day').count()  # type: ignore[attr-defined]
 
 
 @admin.register(WebpageScreenshot)
