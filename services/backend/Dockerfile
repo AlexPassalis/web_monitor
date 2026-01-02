@@ -80,12 +80,10 @@ RUN chmod 711 /root && \
     find /root/.cache -type f ! -executable -exec chmod 644 {} +
 
 COPY --chown=appuser:appuser . .
-RUN chmod +x /app/migrate
-
 USER appuser
 
 ENV ENV=production
-ENV ALLOWED_HOSTS=
-ENV CORS_ALLOWED_ORIGINS=
+ENV ALLOWED_HOSTS=alexpassalis.com,www.alexpassalis.com
+ENV TRUSTED_ORIGINS=https://alexpassalis.com,https://www.alexpassalis.com
 # Default init command, is overriden for the worker and beat service in the docker-stac file
-CMD ["sh", "-c", "uv run gunicorn config.wsgi:application --bind ${HOST}:${PORT}"]
+CMD ["sh", "-c", "uv run python manage.py migrate --noinput && uv run gunicorn config.wsgi:application --bind ${HOST}:${PORT}"]
