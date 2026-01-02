@@ -10,10 +10,10 @@
     "lint": "bunx eslint src --ext .ts,.tsx",
     "fix": "bunx eslint src --ext .ts,.tsx --fix",
     "check": "bunx tsc --noEmit",
-    "openapi": "npx openapi-typescript http://localhost:8000/api/openapi.json -o ./src/lib/openapi/schema.d.ts",
+    "openapi": "NODE_TLS_REJECT_UNAUTHORIZED=0 npx openapi-typescript https://localhost/api/openapi.json -o ./src/lib/openapi/schema.d.ts",
     "dev": "bun --hot src/index.ts",
     "test": "bunx playwright test",
-    "build": "bun build src/main.tsx --outdir=dist --target=browser --format=iife --minify --sourcemap=linked --plugins=bun-plugin-tailwind"
+    "build": "bun build src/main.tsx --outdir=dist --target=browser --format=iife --minify --sourcemap=linked --plugins=bun-plugin-tailwind && cp src/index.html dist/"
   },
   "dependencies": {
     "@mantine/carousel": "~8.3.10",
