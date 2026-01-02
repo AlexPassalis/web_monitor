@@ -25,8 +25,8 @@ services:
     ports:
       - "8080:8080"
     healthcheck:
-      start_period: 30s
-      start_interval: 5s
+      start_period: 10s
+      start_interval: 1s
       test: ["CMD", "/dozzle", "healthcheck"]
       interval: 10s
       timeout: 5s
@@ -50,6 +50,7 @@ services:
       - "5432:5432"
     healthcheck:
       start_period: 10s
+      start_interval: 1s
       test:
         [
           "CMD-SHELL",
@@ -78,8 +79,8 @@ services:
     ports:
       - "8081:8081"
     healthcheck:
-      start_period: 30s
-      start_interval: 5s
+      start_period: 10s
+      start_interval: 1s
       test: ["CMD", "nc", "-vz", "127.0.0.1", "8081"]
       interval: 10s
       timeout: 5s
@@ -101,6 +102,7 @@ services:
       - "6379:6379"
     healthcheck:
       start_period: 10s
+      start_interval: 1s
       test: ["CMD", "valkey-cli", "ping"]
       interval: 10s
       timeout: 5s
@@ -126,6 +128,7 @@ services:
       - "9001:9001"
     healthcheck:
       start_period: 10s
+      start_interval: 1s
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
@@ -147,6 +150,7 @@ services:
       - "8000:8000"
     healthcheck:
       start_period: 10s
+      start_interval: 1s
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 10s
       timeout: 5s
@@ -165,6 +169,17 @@ services:
       - ./services/backend/.env
     networks:
       - network_web_monitor
+    healthcheck:
+      start_period: 10s
+      start_interval: 1s
+      test:
+        [
+          "CMD-SHELL",
+          "celery -A config inspect ping -d celery-beat@$${HOSTNAME}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 2
 
   celery_worker:
     deploy:
@@ -182,6 +197,7 @@ services:
       - network_web_monitor
     healthcheck:
       start_period: 10s
+      start_interval: 1s
       test:
         ["CMD-SHELL", "celery -A config inspect ping -d celery@$${HOSTNAME}"]
       interval: 10s
@@ -209,6 +225,7 @@ services:
       - "host.docker.internal:host-gateway"
     healthcheck:
       start_period: 10s
+      start_interval: 1s
       test:
         ["CMD-SHELL", "curl -kf https://localhost/health | grep ok || exit 1"]
       interval: 10s
