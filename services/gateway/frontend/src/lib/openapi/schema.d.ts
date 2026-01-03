@@ -84,6 +84,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Me
+         * @description Get current authenticated user information
+         */
+        get: operations["base_api_auth_get_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/webpage": {
         parameters: {
             query?: never;
@@ -166,6 +186,13 @@ export interface components {
         Csrf: {
             /** Csrftoken */
             csrfToken: string;
+        };
+        /** Me */
+        Me: {
+            /** Id */
+            id: number;
+            /** Username */
+            username: string;
         };
         /** UnauthorizedResponse */
         UnauthorizedResponse: {
@@ -375,6 +402,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Csrf"];
+                };
+            };
+        };
+    };
+    base_api_auth_get_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
                 };
             };
         };

@@ -1,10 +1,10 @@
 import type { components } from "@/lib/openapi/schema"
 
-import { useRef, useState, useEffect } from "react"
-import { fetch } from "@/lib/openapi/index"
+import { z } from "zod"
 import { useForm } from "@mantine/form"
 import { zod4Resolver } from "mantine-form-zod-resolver"
-import { z } from "zod"
+import { useRef, useState, useEffect } from "react"
+import { fetch } from "@/lib/openapi/index"
 import {
   Table,
   Select,
@@ -66,12 +66,14 @@ export default function Home() {
           }
         } else if (err_csrf) {
           console.error(err_csrf) // TODO better error handling
+          navigate("/error")
         } else {
           csrf.current = data_csrf.csrfToken
           setWebpages(data_webpage)
         }
       } catch (err) {
         console.error(err) // TODO better error handling
+        navigate("/error")
       }
     }
 
@@ -131,8 +133,10 @@ export default function Home() {
           <>
             {modal_data.current.type === "screenshots" && (
               <Carousel
-                withIndicators
-                withControls
+                withIndicators={
+                  modal_data.current.webpage.screenshots.length > 1
+                }
+                withControls={modal_data.current.webpage.screenshots.length > 1}
                 controlSize={40}
                 controlsOffset="lg"
                 height="70vh"
@@ -196,6 +200,7 @@ export default function Home() {
 
                         if (err) {
                           console.error(err) // TODO better error handling
+                          navigate("/error")
                         } else {
                           setWebpages((prev) =>
                             prev.filter((webpage) => webpage.id !== data.id)
@@ -209,6 +214,7 @@ export default function Home() {
                         }
                       } catch (err) {
                         console.error(err) // TODO better error handling
+                        navigate("/error")
                       } finally {
                         close_modal()
                       }
@@ -239,13 +245,25 @@ export default function Home() {
               <Table.Tr
                 key={id}
                 onClick={() => {
+                  const webpage = webpages.find(
+                    (webpage) => webpage.id === id
+                  )!
+                  if (webpage.screenshots.length < 1) {
+                    return
+                  }
+
                   modal_data.current = {
                     type: "screenshots",
                     webpage: webpages.find((webpage) => webpage.id === id)!,
                   }
                   open_modal()
                 }}
-                className="cursor-pointer"
+                className={
+                  webpages.find((webpage) => webpage.id === id)!.screenshots
+                    .length < 1
+                    ? "no-hover"
+                    : "cursor-pointer"
+                }
               >
                 <Table.Td>
                   <a
@@ -286,6 +304,7 @@ export default function Home() {
 
                           if (err) {
                             console.error(err) // TODO better error handling
+                            navigate("/error")
                           } else {
                             setWebpages((prev) =>
                               prev.map((webpage) =>
@@ -303,6 +322,7 @@ export default function Home() {
                           }
                         } catch (err) {
                           console.error(err) // TODO better error handling
+                          navigate("/error")
                         }
                       }}
                       style={{ maxWidth: "120px" }}
@@ -385,6 +405,7 @@ export default function Home() {
                       }
                     } catch (err) {
                       console.error(err) // TODO better error handling
+                      navigate("/error")
                     } finally {
                       form.reset()
                     }

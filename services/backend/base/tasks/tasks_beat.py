@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def run_every_minute() -> None:
+def run_every_minute() -> int:
     """
     Celery task that runs every minute
     """
@@ -23,7 +23,7 @@ def run_every_minute() -> None:
 
     if not webpage_ids:
         logger.info('There are no webpages being monitored every minute')
-        return
+        return 0
 
     async def run_all():
         try:
@@ -41,3 +41,4 @@ def run_every_minute() -> None:
     for result in results:
         if isinstance(result, BaseException):
             raise result
+    return len(webpage_ids)

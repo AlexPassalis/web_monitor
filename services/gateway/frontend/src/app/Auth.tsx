@@ -1,11 +1,47 @@
-import { useState, useRef, useEffect } from "react"
+import { z } from "zod"
+import { useForm } from "@mantine/form"
+import { zod4Resolver } from "mantine-form-zod-resolver"
+import { useState, useEffect } from "react"
 import { fetch } from "@/lib/openapi/index"
-import { useSearchParams } from "react-router-dom"
+import { useSearchParams, useNavigate } from "react-router-dom"
+import { TextInput, Button, PasswordInput } from "@mantine/core"
+
+const formSchema = z.object({
+  username: z
+    .string()
+    .min(6, "Username must be at least 6 characters")
+    .max(18, "Username must be at most 18 characters")
+    .regex(
+      /^[\w.@+-]+$/,
+      "Username may contain only letters, numbers, and @/./+/-/_ characters"
+    ),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(64, "Password must be at most 64 characters"),
+})
 
 export default function Auth() {
   const [search_params, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(search_params.get("mode") === "login")
   useEffect(() => {
+    const isLoggedIn = async () => {
+      try {
+        const { data, response, error: err } = await fetch.GET("/api/me")
+        if (data) {
+          navigate("/")
+        } else if (response.status !== 401) {
+          console.error(err) // TODO better error handling
+          navigate("/error")
+        }
+      } catch (err) {
+        console.error(err) // TODO better error handling
+        navigate("/error")
+      }
+    }
+    isLoggedIn()
+
     if (isLogin) {
       setSearchParams({ mode: "login" })
     } else {
@@ -13,89 +49,88 @@ export default function Auth() {
     }
   }, [isLogin, setSearchParams])
 
-  const input_username_ref = useRef<HTMLInputElement>(null)
-  const input_password_ref = useRef<HTMLInputElement>(null)
+  const form = useForm({
+    mode: "uncontrolled",
+    initialValues: {
+      username: "",
+      password: "",
+    },
+    validate: zod4Resolver(formSchema),
+  })
 
   return (
     <main className="w-screen h-screen flex justify-center items-center">
       <form
-        onSubmit={async (e) => {
-          e.preventDefault()
-
-          if (!input_username_ref.current || !input_password_ref.current) {
-            // TODO better data handling here
-            return
-          }
+        onSubmit={form.onSubmit(async (form_values) => {
+          const { username, password } = form_values
 
           try {
             if (isLogin) {
               const { error: err } = await fetch.POST("/api/login", {
                 body: {
-                  username: input_username_ref.current.value,
-                  password: input_password_ref.current.value,
+                  username,
+                  password,
                 },
               })
 
               if (err) {
-                // TODO better error handling
-                console.error(err)
-                return
+                console.error(err) // TODO better error handling
+                navigate("/error")
               }
             } else {
               const { error: err } = await fetch.POST("/api/signup", {
                 body: {
-                  username: input_username_ref.current.value,
-                  password: input_password_ref.current.value,
+                  username,
+                  password,
                 },
               })
 
               if (err) {
-                // TODO better error handling
-                console.error(err)
-                return
+                console.error(err) // TODO better error handling
+                navigate("/error")
               }
             }
 
-            window.location.href = "/"
+            navigate("/")
           } catch (err) {
             console.error(err) // TODO better error handling
+            navigate("/error")
           }
-        }}
-        className="flex flex-col w-1/3 border border-black p-4"
+        })}
+        className="flex flex-col w-1/3 border p-4"
+        style={{ borderColor: "var(--mantine-color-gray-4)" }}
       >
-        <label htmlFor="input_username">Username</label>
-        <input
-          id="input_username"
-          ref={input_username_ref}
-          type="text"
-          className="border border-black rounded-md p-1 mb-1"
+        <TextInput
+          key={form.key("username")}
+          label="Username"
+          placeholder="Your username"
+          mb="md"
+          {...form.getInputProps("username")}
         />
-        <label htmlFor="input_password">Password</label>
-        <input
-          id="input_password"
-          ref={input_password_ref}
-          type="password"
-          className="border border-black rounded-md p-1"
+        <PasswordInput
+          key={form.key("password")}
+          label="Password"
+          placeholder="********"
+          mb="lg"
+          {...form.getInputProps("password")}
         />
-        <button
-          id="button_submit"
-          type="submit"
-          className="self-center w-auto p-1 border border-black mt-4 text-lg hover:cursor-pointer"
-        >
+        <Button type="submit" mb="sm">
           {isLogin ? "Log In" : "Sign Up"}
-        </button>
+        </Button>
         <div className="mt-2 text-sm text-right">
           <span className="mr-1">
             {isLogin ? "Don't have an account?" : "Already have an account?"}
           </span>
-          <button
-            id="button_toggle_mode"
-            onClick={() => setIsLogin((prev) => !prev)}
+          <Button
             type="button"
-            className="border border-black rounded-md p-0.5 hover:cursor-pointer"
+            onClick={() => setIsLogin((prev) => !prev)}
+            variant="light"
+            size="xs"
+            m="0"
+            px="xs"
           >
             {isLogin ? "Sign Up" : "Log In"}
-          </button>
+          </Button>
         </div>
       </form>
     </main>

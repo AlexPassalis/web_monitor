@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 from django.middleware.csrf import get_token
 from ninja import Router, Schema
+from ninja.security import django_auth
 
 from base.models import User
 
@@ -33,6 +34,10 @@ class Response:
 
     class Csrf(Schema):
         csrfToken: str
+
+    class Me(Schema):
+        id: int
+        username: str
 
     class Error(Schema):
         detail: str | dict | list
@@ -105,3 +110,14 @@ def get_csrf(request: HttpRequest) -> tuple[Literal[200], Response.Csrf]:
     Get CSRF token
     """
     return 200, Response.Csrf(csrfToken=get_token(request))
+
+
+@router_auth.get('/me', response={200: Response.Me}, auth=django_auth)
+def get_me(request: HttpRequest) -> tuple[Literal[200], Response.Me]:
+    """
+    Get current authenticated user information
+    """
+    assert request.user.is_authenticated
+    user = request.user
+
+    return 200, Response.Me(id=user.id, username=user.username)  # type: ignore[misc]

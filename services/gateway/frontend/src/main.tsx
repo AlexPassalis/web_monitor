@@ -81,7 +81,8 @@ if (document.readyState === "loading") {
 
 import Auth from "@/app/Auth"
 import Home from "@/app/Home"
-import Fallback from "@/app/Fallback"
+import Error from "@/app/Error"
+import NotFound from "@/app/NotFound"
 
 function App() {
   return (
@@ -89,7 +90,8 @@ function App() {
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/" element={<Home />} />
-        <Route path="*" element={<Fallback />} />
+        <Route path="/error" element={<Error />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )
