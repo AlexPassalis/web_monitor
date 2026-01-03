@@ -149,7 +149,7 @@ export default function Home() {
                 {modal_data.current.webpage.screenshots.map((timestamp) => {
                   const id = modal_data.current?.webpage.id
                   const url = modal_data.current?.webpage.url
-                  const path = `webpagescreenshots/${id}/${timestamp}.png`
+                  const path = `webpage/${id}/${timestamp}.png`
                   return (
                     <Carousel.Slide key={path}>
                       <Flex direction="column" align="center">

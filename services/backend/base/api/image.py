@@ -1,10 +1,12 @@
 import io
 import logging
+import re
 from typing import Annotated, Literal
 
 import django.core.files.storage
 from django.http import FileResponse, HttpRequest
 from ninja import Query, Router, Schema
+from ninja.security import django_auth
 from PIL import Image
 from PIL.Image import Image as PILImage
 from pydantic import Field
@@ -21,20 +23,18 @@ class ImageQuery(Schema):
     f: Literal['webp', 'avif', 'jpeg', 'png'] | None = 'webp'
 
 
-class NotFoundResponse(Schema):
-    detail: str
-
-
-class BadRequestResponse(Schema):
+class ErrorResponse(Schema):
     detail: str
 
 
 @router_image.get(
     summary='Get optimized image',
+    auth=django_auth,
     path='/image/{path:path}',
     response={
-        404: NotFoundResponse,
-        400: BadRequestResponse,
+        401: ErrorResponse,
+        404: ErrorResponse,
+        400: ErrorResponse,
     },
     include_in_schema=True,
 )
@@ -42,10 +42,21 @@ def image_get(
     request: HttpRequest,
     path: str,
     query: Query[ImageQuery],
-) -> FileResponse | tuple[Literal[404], NotFoundResponse] | tuple[Literal[400], BadRequestResponse]:
+) -> (
+    FileResponse
+    | tuple[Literal[401], ErrorResponse]
+    | tuple[Literal[404], ErrorResponse]
+    | tuple[Literal[400], ErrorResponse]
+):
     """
     Serves optimized images with format conversion, resizing, and quality adjustment
     """
+    assert request.user.is_authenticated
+
+    path_pattern = re.compile(r'^webpage/\d+/[\w\-_.]+\.(png|jpg|jpeg|webp|avif)$')
+    if not path_pattern.match(path):
+        return 400, ErrorResponse(detail='Invalid path')
+
     width = query.w
     height = query.h
     quality = query.q
@@ -72,10 +83,10 @@ def image_get(
 
             output_buffer.seek(0)
     except FileNotFoundError:
-        return 404, NotFoundResponse(detail='Image not found')
+        return 404, ErrorResponse(detail='Image not found')
     except Exception as err:
         logger.error('Error opening image %s: %s', path, err)
-        return 400, BadRequestResponse(detail='Error opening image: %s' % path)
+        return 400, ErrorResponse(detail='Error opening image: %s' % path)
 
     return FileResponse(
         output_buffer,

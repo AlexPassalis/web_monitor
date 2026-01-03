@@ -259,13 +259,8 @@ export interface components {
              */
             f: ("webp" | "avif" | "jpeg" | "png") | null;
         };
-        /** NotFoundResponse */
-        NotFoundResponse: {
-            /** Detail */
-            detail: string;
-        };
-        /** BadRequestResponse */
-        BadRequestResponse: {
+        /** ErrorResponse */
+        ErrorResponse: {
             /** Detail */
             detail: string;
         };
@@ -530,7 +525,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Not Found */
@@ -539,7 +543,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NotFoundResponse"];
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

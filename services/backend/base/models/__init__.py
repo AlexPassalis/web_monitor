@@ -148,7 +148,7 @@ class WebpageMonitoring(models.Model):
             return
 
         storage = django.core.files.storage.default_storage
-        prefix = f'webpagescreenshots/{webpage_id}/'
+        prefix = f'webpage/{webpage_id}/'
 
         try:
             _, files = storage.listdir(prefix)
@@ -228,7 +228,7 @@ class WebpageScreenshot(models.Model):
         )
 
         timestamp = webpagescreenshot.created_at.strftime('%Y%m%d_%H%M%S_%f')
-        file_path = f'webpagescreenshots/{webpage.id}/{timestamp}.png'
+        file_path = f'webpage/{webpage.id}/{timestamp}.png'
         await asyncio.to_thread(
             WebpageScreenshot.upload_screenshot_to_s3,
             result.screenshot,

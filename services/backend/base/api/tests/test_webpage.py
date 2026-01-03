@@ -330,3 +330,53 @@ def test_webpage_get_by_interval(get_user, interval):
         assert len(json_response) == 3
         urls = {item['url'] for item in json_response}
         assert urls == {'http://minute.com/', 'http://hour.com/', 'http://day.com/'}
+
+
+@pytest.mark.django_db
+def test_webpage_delete_unauthorized():
+    """
+    Test that unauthenticated users cannot delete webpage monitoring
+    """
+    json_body = {'id': 1}
+
+    response = client.request(method='DELETE', path=path, json=json_body)
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+@patch('base.tasks.tasks.save_initial_screenshot.apply_async')
+def test_webpage_delete_valid(mock_task, get_user):
+    """
+    Test successful deletion of webpage monitoring
+    """
+    json_body = {'url': TestValues.url, 'interval': TestValues.interval}
+    response = client.request(method='POST', path=path, json=json_body, user=get_user)
+    assert response.status_code == 201
+
+    webpage_id = response.json()['id']
+
+    delete_body = {'id': webpage_id}
+    response = client.request(method='DELETE', path=path, json=delete_body, user=get_user)
+    assert response.status_code == 200
+
+    response_data = response.json()
+    assert response_data['message'] == 'Webpage monitoring removed successfully'
+    assert response_data['id'] == webpage_id
+    assert response_data['url'] == TestValues.url
+
+    assert not WebpageMonitoring.objects.filter(webpage__id=webpage_id, user=get_user).exists()
+
+
+@pytest.mark.django_db
+def test_webpage_delete_not_monitoring(get_user):
+    """
+    Test that users cannot delete webpage monitoring they are not tracking
+    """
+    webpage = Webpage.objects.create(url='http://other.com/')
+
+    delete_body = {'id': webpage.id}
+    response = client.request(method='DELETE', path=path, json=delete_body, user=get_user)
+    assert response.status_code == 404
+
+    response_data = response.json()
+    assert response_data['detail'][0]['msg'] == 'You are not monitoring this webpage'

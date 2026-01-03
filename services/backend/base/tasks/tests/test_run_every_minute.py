@@ -33,7 +33,7 @@ def test_run_every_minute_no_change(get_user):
     assert latest_screenshot.id == initial_screenshot.id
     assert WebpageScreenshot.objects.filter(webpage=webpage).count() == 1
 
-    screenshot_dir = f'webpagescreenshots/{webpage.id}'
+    screenshot_dir = f'webpage/{webpage.id}'
     files = django.core.files.storage.default_storage.listdir(screenshot_dir)[1]
     file_path = f'{screenshot_dir}/{files[0]}'
     django.core.files.storage.default_storage.delete(file_path)
@@ -53,12 +53,10 @@ def test_run_every_minute_creates_screenshot_when_missing(get_user, get_webpage)
     assert screenshot is not None
     assert screenshot.perceptual_hash is not None
 
-    files = django.core.files.storage.default_storage.listdir(
-        f'webpagescreenshots/{get_webpage.id}'
-    )[1]
+    files = django.core.files.storage.default_storage.listdir(f'webpage/{get_webpage.id}')[1]
     assert len(files) == 1
 
-    file_path = f'webpagescreenshots/{get_webpage.id}/{files[0]}'
+    file_path = f'webpage/{get_webpage.id}/{files[0]}'
     assert django.core.files.storage.default_storage.exists(file_path)
 
     django.core.files.storage.default_storage.delete(file_path)
@@ -75,3 +73,19 @@ def test_run_every_minute_no_webpages_monitored(caplog):
         run_every_minute()
 
     assert 'There are no webpages being monitored every minute' in caplog.text
+
+
+@pytest.mark.django_db(transaction=True)
+def test_run_every_minute_raises_exception_on_task_failure(get_user, get_webpage):
+    """
+    Test that run_every_minute raises exception when screenshot task fails
+    """
+    from unittest.mock import patch
+
+    WebpageMonitoring.objects.create(webpage=get_webpage, user=get_user, interval='minute')
+
+    with patch('base.models.WebpageScreenshot.save_screenshot') as mock_save:
+        mock_save.side_effect = RuntimeError('Screenshot failed')
+
+        with pytest.raises(RuntimeError, match='Screenshot failed'):
+            run_every_minute()
