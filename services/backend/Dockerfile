@@ -58,8 +58,8 @@ COPY --chown=appuser:appuser . .
 USER appuser
 
 ENV ENV=development
-ENV ALLOWED_HOSTS=localhost,127.0.0.1,${HOST}
-ENV TRUSTED_ORIGINS=https://localhost,http://localhost:${PORT},http://localhost:3000
+ENV ALLOWED_HOSTS=localhost,127.0.0.1
+ENV TRUSTED_ORIGINS=https://localhost,http://localhost:${PORT}
 # Prevent python from creating __pycache__ files
 ENV PYTHONDONTWRITEBYTECODE=1
 # Default init command, is overriden for the worker and beat service in the docker-stac file
@@ -83,7 +83,8 @@ COPY --chown=appuser:appuser . .
 USER appuser
 
 ENV ENV=production
-ENV ALLOWED_HOSTS=alexpassalis.com,www.alexpassalis.com
+ENV ALLOWED_HOSTS=localhost,127.0.0.1,alexpassalis.com,www.alexpassalis.com
 ENV TRUSTED_ORIGINS=https://alexpassalis.com,https://www.alexpassalis.com
 # Default init command, is overriden for the worker and beat service in the docker-stac file
-CMD ["sh", "-c", "uv run python manage.py migrate --noinput && uv run gunicorn config.wsgi:application --bind ${HOST}:${PORT}"]
+# Don't run migrations in the enrtrypoint command, if you are using more than a single replica of the container !!!
+CMD ["sh", "-c", "uv run python manage.py collectstatic --noinput && uv run python manage.py migrate --noinput && uv run gunicorn config.wsgi:application --bind ${HOST}:${PORT}"]

@@ -1,0 +1,24 @@
+services:
+  db:
+    image: web_monitor-db:latest
+
+  cache:
+    image: web_monitor-cache:latest
+
+  backend:
+    image: web_monitor-backend:latest
+    environment:
+      - TRUSTED_ORIGINS=https://localhost,http://localhost:3000
+
+  celery_beat:
+    image: web_monitor-backend:latest
+    environment:
+      - TRUSTED_ORIGINS=https://localhost,http://localhost:3000
+
+  celery_worker:
+    image: web_monitor-backend:latest
+    environment:
+      - TRUSTED_ORIGINS=https://localhost,http://localhost:3000
+
+  gateway:
+    image: web_monitor-gateway:latest

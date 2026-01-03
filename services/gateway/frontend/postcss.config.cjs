@@ -10,7 +10,7 @@ module.exports = {
       },
     }),
     require("postcss-preset-mantine")(),
-    require("tailwindcss")(),
+    require("@tailwindcss/postcss")(),
     require("autoprefixer")(),
   ],
 };

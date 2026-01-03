@@ -39,7 +39,7 @@ services:
       update_config:
         order: start-first
         failure_action: rollback
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/web_monitor-db:latest
+    image: ghcr.io/alexpassalis/web_monitor-db:latest
     env_file:
       - ./services/db/.env
     volumes:
@@ -93,7 +93,7 @@ services:
       update_config:
         order: start-first
         failure_action: rollback
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/web_monitor-cache:latest
+    image: ghcr.io/alexpassalis/web_monitor-cache:latest
     volumes:
       - valkey:/data
     networks:
@@ -141,7 +141,7 @@ services:
       update_config:
         order: start-first
         failure_action: rollback
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/web_monitor-backend:latest
+    image: ghcr.io/alexpassalis/web_monitor-backend:latest
     user: appuser
     env_file:
       - ./services/backend/.env
@@ -164,9 +164,9 @@ services:
       update_config:
         order: start-first
         failure_action: rollback
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/web_monitor-backend:latest
+    image: ghcr.io/alexpassalis/web_monitor-backend:latest
     user: appuser
-    command: celery -A config beat --loglevel=info
+    command: uv run celery -A config beat --loglevel=info
     env_file:
       - ./services/backend/.env
     networks:
@@ -186,9 +186,9 @@ services:
       update_config:
         order: start-first
         failure_action: rollback
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/web_monitor-backend:latest
+    image: ghcr.io/alexpassalis/web_monitor-backend:latest
     user: appuser
-    command: celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info -E
+    command: uv run celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info -E
     env_file:
       - ./services/backend/.env
     networks:
@@ -197,7 +197,7 @@ services:
       start_period: 10s
       start_interval: 1s
       test:
-        ["CMD-SHELL", "celery -A config inspect ping -d celery@$${HOSTNAME}"]
+        ["CMD-SHELL", "uv run celery -A config inspect ping -d celery@$${HOSTNAME}"]
       interval: 10s
       timeout: 5s
       retries: 2
@@ -209,7 +209,7 @@ services:
       update_config:
         order: stop-first
         failure_action: rollback
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/web_monitor-gateway:latest
+    image: ghcr.io/alexpassalis/web_monitor-gateway:latest
     volumes:
       - ./services/gateway/certs:/etc/nginx/certs:ro
     networks:

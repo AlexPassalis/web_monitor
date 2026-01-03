@@ -14,23 +14,34 @@ init:
 	@echo "==> Initializing git hooks"
 	git config core.hooksPath bin/.githooks
 
-build_dev:
-	@echo "==> Building docker images (development)"
+build:
+	@echo "==> Building docker images"
 	docker build -t web_monitor-db -f ./services/db/Dockerfile ./services/db
 	docker build -t web_monitor-cache -f ./services/cache/Dockerfile ./services/cache
 	docker build --target dev -t web_monitor-backend -f ./services/backend/Dockerfile ./services/backend
 	docker build --target dev -t web_monitor-gateway -f ./services/gateway/Dockerfile ./services/gateway
 
-build_dev_no_cache:
-	@echo "==> Building docker images without cache (development)"
+build_no_cache:
+	@echo "==> Building docker images without cache"
 	docker build --no-cache -t web_monitor-db -f ./services/db/Dockerfile ./services/db
 	docker build --no-cache -t web_monitor-cache -f ./services/cache/Dockerfile ./services/cache
 	docker build --no-cache --target dev -t web_monitor-backend -f ./services/backend/Dockerfile ./services/backend
 	docker build --no-cache --target dev -t web_monitor-gateway -f ./services/gateway/Dockerfile ./services/gateway
 
+start_prod:
+	@${MAKE} build_frontend
+	@echo "==> Building production docker images"
+	docker build -t web_monitor-db -f ./services/db/Dockerfile ./services/db
+	docker build -t web_monitor-cache -f ./services/cache/Dockerfile ./services/cache
+	docker build -t web_monitor-backend -f ./services/backend/Dockerfile ./services/backend
+	docker build -t web_monitor-gateway -f ./services/gateway/Dockerfile ./services/gateway
+	@bin/create_docker_network
+	@echo "==> Starting Docker services for ${STACK_NAME} stack in production mode"
+	@docker stack deploy -c docker-stack.yaml -c docker-stack.override.yaml --detach=false --resolve-image always --with-registry-auth ${STACK_NAME}
+
 start:
 	@if [ "$$(docker stack services ${STACK_NAME} -q 2>/dev/null | wc -l)" -eq 0 ]; then \
-		${MAKE} build_dev; \
+		${MAKE} build; \
 		${MAKE} start_backend; \
 		${MAKE} start_frontend; \
 	else \
