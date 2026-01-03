@@ -164,14 +164,15 @@ services:
         order: start-first
         failure_action: rollback
     image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/web_monitor-backend:latest
+    user: appuser
     command: celery -A config beat --loglevel=info
     env_file:
       - ./services/backend/.env
     networks:
       - network_web_monitor
     healthcheck:
-      start_period: 20s
-      start_interval: 2s
+      start_period: 30s
+      start_interval: 5s
       test: ["CMD-SHELL", "test -f celerybeat-schedule || exit 1"]
       interval: 10s
       timeout: 5s

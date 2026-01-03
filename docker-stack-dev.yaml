@@ -167,6 +167,7 @@ services:
         order: start-first
         failure_action: rollback
     image: web_monitor-backend
+    user: appuser
     command: uv run watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config beat --loglevel=info
     env_file:
       - ./services/backend/.env
@@ -176,8 +177,8 @@ services:
     networks:
       - network_web_monitor
     healthcheck:
-      start_period: 20s
-      start_interval: 2s
+      start_period: 30s
+      start_interval: 5s
       test: ["CMD-SHELL", "test -f celerybeat-schedule || exit 1"]
       interval: 10s
       timeout: 5s
