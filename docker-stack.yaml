@@ -142,6 +142,7 @@ services:
         order: start-first
         failure_action: rollback
     image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/web_monitor-backend:latest
+    user: appuser
     env_file:
       - ./services/backend/.env
     networks:
