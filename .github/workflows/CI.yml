@@ -54,6 +54,14 @@ jobs:
         run: docker swarm init
       - name: Docker stack deploy
         run: make start_backend
+      - name: Debug - Dump celery_beat logs
+        if: always()
+        run: |
+          echo "=== Celery Beat Service Logs ==="
+          docker service logs web_monitor_celery_beat --tail 200 2>&1 || echo "No celery_beat logs available"
+          echo ""
+          echo "=== Celery Beat Service Status ==="
+          docker service ps web_monitor_celery_beat --no-trunc 2>&1 || echo "No celery_beat service found"
       - name: Run backend tests with coverage
         run: make test_coverage
       - name: Copy coverage from container to host
