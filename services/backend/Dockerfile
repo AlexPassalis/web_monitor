@@ -86,5 +86,5 @@ ENV ENV=production
 ENV ALLOWED_HOSTS=localhost,127.0.0.1,alexpassalis.com,www.alexpassalis.com
 ENV TRUSTED_ORIGINS=https://alexpassalis.com,https://www.alexpassalis.com
 # Default init command, is overriden for the worker and beat service in the docker-stac file
-# Don't run migrations in the enrtrypoint command, if you are using more than a single replica of the container !!!
+# Don't run migrations in the enrtrypoint command, if you are using more than a single replica of the container (race conditions) !!!
 CMD ["sh", "-c", "uv run python manage.py collectstatic --noinput && uv run python manage.py migrate --noinput && uv run gunicorn config.wsgi:application --bind ${HOST}:${PORT}"]

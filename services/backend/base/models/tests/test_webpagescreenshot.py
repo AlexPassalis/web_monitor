@@ -204,3 +204,23 @@ def test_save_screenshot_aborts_when_take_screenshot_fails(mock_take_screenshot,
     async_to_sync(WebpageScreenshot.save_screenshot)(get_webpage.id)
 
     assert not WebpageScreenshot.objects.filter(webpage=get_webpage).exists()
+
+
+@pytest.mark.django_db(transaction=True)
+@patch('base.models.WebpageScreenshot.take_screenshot')
+@patch('base.models.WebpageScreenshot.upload_screenshot_to_s3')
+def test_save_screenshot_cleanup_on_s3_upload_failure(
+    mock_upload, mock_take_screenshot, get_webpage
+):
+    """
+    Test that DB record is deleted if S3 upload fails
+    """
+    mock_take_screenshot.return_value = MagicMock(
+        screenshot=b'fake_image_data', perceptual_hash='abc123'
+    )
+    mock_upload.side_effect = Exception('S3 upload failed')
+
+    with pytest.raises(Exception, match='S3 upload failed'):
+        async_to_sync(WebpageScreenshot.save_screenshot)(get_webpage.id)
+
+    assert not WebpageScreenshot.objects.filter(webpage=get_webpage).exists()

@@ -113,6 +113,20 @@ def save_test_image_to_storage(create_test_image):
 
 
 @pytest.fixture
+def reset_browser_state():
+    """
+    Reset browser global state before and after each test
+    """
+    from config import utils
+
+    utils.browser_data = None
+    utils.async_locks.clear()
+    yield
+    utils.browser_data = None
+    utils.async_locks.clear()
+
+
+@pytest.fixture
 def auth_client():
     return TestClientWithSessions(router_auth)
 

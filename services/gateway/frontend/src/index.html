@@ -12,9 +12,15 @@
       document.getElementById(
         "favicon"
       ).href = `https://${hostname}/static/favicon.svg`;
+
+      if (hostname === "alexpassalis.com") {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "./main.css";
+        document.head.appendChild(link);
+      }
     </script>
     <title>Bun + React</title>
-    <link rel="stylesheet" href="./main.css" />
   </head>
   <body>
     <div id="root"></div>

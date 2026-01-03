@@ -2,6 +2,8 @@ import io
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from ninja.testing import TestClient
 from PIL import Image
 
@@ -223,7 +225,7 @@ def test_image_corrupt_file_error(mock_open, get_user, get_webpage):
     response = client.get(f'/image/webpage/{get_webpage.id}/corrupt.png', user=get_user)
 
     assert response.status_code == 400
-    assert 'Error opening image' in response.json()['detail']
+    assert response.json()['detail'] == 'Error processing image'
 
 
 @pytest.mark.parametrize(
@@ -276,3 +278,20 @@ def test_get_format_config(format_type, expected_pil_format, expected_content_ty
 
     assert pil_format == expected_pil_format
     assert content_type == expected_content_type
+
+
+@pytest.mark.django_db
+def test_image_rejects_oversized_source_dimensions(get_user, get_webpage, create_test_image):
+    """
+    Test that images with source dimensions exceeding 3840px are rejected
+    """
+    large_image_bytes = create_test_image(size=(4000, 100))
+    path = f'webpage/{get_webpage.id}/large.png'
+    default_storage.save(path, ContentFile(large_image_bytes))
+
+    response = client.get(f'/image/{path}', user=get_user)
+
+    assert response.status_code == 400
+    assert response.json()['detail'] == 'Source image dimensions exceed limits'
+
+    default_storage.delete(path)

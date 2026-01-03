@@ -8,7 +8,7 @@ from config import utils
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_get_browser_reuses_existing_connected_browser():
+async def test_get_browser_reuses_existing_connected_browser(reset_browser_state):
     """
     Test that get_browser reuses existing browser when it's connected and from same loop
     """
@@ -29,7 +29,7 @@ async def test_get_browser_reuses_existing_connected_browser():
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_get_browser_recreates_when_loop_id_mismatch():
+async def test_get_browser_recreates_when_loop_id_mismatch(reset_browser_state):
     """
     Test that get_browser creates new instance when loop ID doesn't match
     """
@@ -58,7 +58,7 @@ async def test_get_browser_recreates_when_loop_id_mismatch():
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_get_browser_reconnects_when_disconnected():
+async def test_get_browser_reconnects_when_disconnected(reset_browser_state):
     """
     Test that get_browser creates new instance when existing browser is disconnected
     """
@@ -87,7 +87,7 @@ async def test_get_browser_reconnects_when_disconnected():
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_browser_cleanup_closes_browser():
+async def test_browser_cleanup_closes_browser(reset_browser_state):
     """
     Test that browser_cleanup closes browser and stops playwright
     """
@@ -110,7 +110,7 @@ async def test_browser_cleanup_closes_browser():
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_browser_cleanup_handles_exception():
+async def test_browser_cleanup_handles_exception(reset_browser_state):
     """
     Test that browser_cleanup sets browser_data to None even when close fails
     """
@@ -133,7 +133,7 @@ async def test_browser_cleanup_handles_exception():
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_get_browser_reuses_async_lock():
+async def test_get_browser_reuses_async_lock(reset_browser_state):
     """
     Test that get_browser reuses existing async lock when called multiple times in same loop
     """
@@ -155,7 +155,7 @@ async def test_get_browser_reuses_async_lock():
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
-async def test_browser_cleanup_skips_when_loop_id_mismatch():
+async def test_browser_cleanup_skips_when_loop_id_mismatch(reset_browser_state):
     """
     Test that browser_cleanup doesn't clean up browser from different loop
     """

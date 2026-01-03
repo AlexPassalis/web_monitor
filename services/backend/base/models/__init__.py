@@ -229,11 +229,16 @@ class WebpageScreenshot(models.Model):
 
         timestamp = webpagescreenshot.created_at.strftime('%Y%m%d_%H%M%S_%f')
         file_path = f'webpage/{webpage.id}/{timestamp}.png'
-        await asyncio.to_thread(
-            WebpageScreenshot.upload_screenshot_to_s3,
-            result.screenshot,
-            file_path,
-        )
+
+        try:
+            await asyncio.to_thread(
+                WebpageScreenshot.upload_screenshot_to_s3,
+                result.screenshot,
+                file_path,
+            )
+        except Exception:
+            await asyncio.to_thread(webpagescreenshot.delete)
+            raise
 
         logger.info('New screenshot saved for webpage with url: %s', webpage.url)
 

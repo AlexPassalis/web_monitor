@@ -66,6 +66,16 @@ def image_get(
         with django.core.files.storage.default_storage.open(path, 'rb') as image_file:
             image: PILImage = Image.open(image_file)
 
+            max_source_dimension = 3840  # 4k limit
+            if image.width > max_source_dimension or image.height > max_source_dimension:
+                logger.warning(
+                    'Image dimensions too large: %dx%d for path %s',
+                    image.width,
+                    image.height,
+                    path,
+                )
+                return 400, ErrorResponse(detail='Source image dimensions exceed limits')
+
             if width or height:
                 image = resize_image(image, width, height)
 
@@ -85,8 +95,8 @@ def image_get(
     except FileNotFoundError:
         return 404, ErrorResponse(detail='Image not found')
     except Exception as err:
-        logger.error('Error opening image %s: %s', path, err)
-        return 400, ErrorResponse(detail='Error opening image: %s' % path)
+        logger.error('Error processing image %s: %s', path, err)
+        return 400, ErrorResponse(detail='Error processing image')
 
     return FileResponse(
         output_buffer,
@@ -99,7 +109,8 @@ def image_get(
 
 def resize_image(image: PILImage, width: int | None, height: int | None) -> PILImage:
     """
-    Resize image while maintaining aspect ratio
+    Resize image. Maintains aspect ratio when only one dimension is provided.
+    When both dimensions are specified, resizes to exact dimensions (may distort).
     """
     original_width, original_height = image.size
 
