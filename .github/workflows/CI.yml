@@ -9,8 +9,6 @@ jobs:
     name: build
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    env:
-      CI: true
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/build
@@ -37,6 +35,8 @@ jobs:
         run: docker swarm init
       - name: Docker stack deploy
         run: make start_backend
+        env:
+          PYTHON_USER: root
       - name: Run code checks
         run: make check
 
@@ -54,6 +54,8 @@ jobs:
         run: docker swarm init
       - name: Docker stack deploy
         run: make start_backend
+        env:
+          PYTHON_USER: root
       - name: Debug - Dump celery_beat logs
         if: always()
         run: |
@@ -92,6 +94,8 @@ jobs:
         run: docker swarm init
       - name: Docker stack deploy
         run: make start_backend
+        env:
+          PYTHON_USER: root
       - name: Check for missing migrations
         run: make check_missing_migrations
       - name: Apply migrations

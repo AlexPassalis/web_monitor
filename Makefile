@@ -91,13 +91,8 @@ stop_backend:
 
 lint_backend:
 	@echo "==> Linting inside \"${BACKEND_SERVICE_NAME}\" service"
-	@if [ "$${CI:-false}" != "true" ]; then \
-		bin/dockerize_backend uv run ruff check .; \
-		bin/dockerize_backend uv run ruff format --check .; \
-	else \
-		bin/dockerize_backend uv run ruff check --no-cache .; \
-		bin/dockerize_backend uv run ruff format --check --no-cache .; \
-	fi
+	@bin/dockerize_backend uv run ruff check .
+	@bin/dockerize_backend uv run ruff format --check .
 
 fix_backend:
 	@echo "==> Linting and formatting inside \"${BACKEND_SERVICE_NAME}\" service"
@@ -114,11 +109,7 @@ test_backend:
 
 test_backend_coverage:
 	@echo "==> Running tests with coverage inside \"${BACKEND_SERVICE_NAME}\" service"
-	@if [ "$${CI:-false}" != "true" ]; then \
-		bin/dockerize_backend uv run pytest --cov --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing; \
-	else \
-		bin/dockerize_backend uv run pytest --cov --cov-branch --cov-report=xml -p no:cacheprovider; \
-	fi
+	@bin/dockerize_backend uv run pytest --cov --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing
 
 makemigrations:
 	@echo "==> Creating database migrations"
