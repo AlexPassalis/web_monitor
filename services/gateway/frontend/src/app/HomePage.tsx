@@ -28,7 +28,7 @@ const formSchema = z.object({
   url: z.url({ error: "Invalid URL" }),
 })
 
-export default function Home() {
+export default function HomePage() {
   const csrf = useRef("")
   const [webpages, setWebpages] = useState<
     components["schemas"]["WebpageDetail"][]
@@ -159,7 +159,7 @@ export default function Home() {
                       <Flex direction="column" align="center">
                         <Image
                           src={path}
-                          alt={`Webpagescreenshot of ${url} at ${timestamp}`}
+                          alt={`Webpage screenshot of ${url} at ${timestamp}`}
                           className="w-full max-h-[62vh] object-contain"
                         />
                         <Text ta="center" size="lg" mt="md">
@@ -385,7 +385,8 @@ export default function Home() {
                       )
 
                       if (err) {
-                        console.error(err)
+                        console.error(err) // TODO better error handling
+                        navigate("/error")
                       } else {
                         setWebpages((prev) => [
                           ...prev,

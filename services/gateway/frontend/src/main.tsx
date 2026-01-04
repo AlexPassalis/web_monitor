@@ -79,19 +79,19 @@ if (document.readyState === "loading") {
   start()
 }
 
-import Auth from "@/app/Auth"
-import Home from "@/app/Home"
-import Error from "@/app/Error"
-import NotFound from "@/app/NotFound"
+import AuthPage from "@/app/AuthPage"
+import HomePage from "@/app/HomePage"
+import ErrorPage from "@/app/ErrorPage"
+import NotFoundPage from "@/app/NotFoundPage"
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/" element={<Home />} />
-        <Route path="/error" element={<Error />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/error" element={<ErrorPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )

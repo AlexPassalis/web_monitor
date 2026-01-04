@@ -21,7 +21,7 @@ const formSchema = z.object({
     .max(64, "Password must be at most 64 characters"),
 })
 
-export default function Auth() {
+export default function AuthPage() {
   const [search_params, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(search_params.get("mode") === "login")

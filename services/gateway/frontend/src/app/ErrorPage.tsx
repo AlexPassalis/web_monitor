@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom"
 
-export default function NotFound() {
+export default function ErrorPage() {
   return (
     <main className="w-screen h-screen flex flex-col justify-center items-center">
-      <h1 className="text-6xl">Error - 404</h1>
+      <h1 className="text-6xl">Error - 500</h1>
       <h1 className="text-3xl mt-6 mb-10">
-        The requested URL was not found on the server.
+        The server encountered an error and could not complete your request.
       </h1>
       <Link
         to="/"

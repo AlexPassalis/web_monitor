@@ -10,7 +10,7 @@ test.describe("Home Page", () => {
     await expect(page).toHaveURL("/auth?mode=login");
   });
 
-  test("User can add a new webpages", async ({ page }) => {
+  test("User can add a new webpage", async ({ page }) => {
     await signup_and_login(page);
 
     await expect(page).toHaveURL("/");
@@ -27,13 +27,13 @@ test.describe("Home Page", () => {
     const submit_button = page.locator(
       'button[type="submit"][form="form_create_webpage"]'
     );
-    await submit_button.click();
-
-    await page.waitForResponse(
+    const response_promise = page.waitForResponse(
       (response) =>
         response.url().includes("/api/webpage") &&
         response.request().method() === "POST"
     );
+    await submit_button.click();
+    await response_promise;
 
     const new_row = page.locator("tr").filter({ hasText: test_url }).first();
     await expect(new_row.locator("td").nth(2)).toHaveText("0");
@@ -47,13 +47,13 @@ test.describe("Home Page", () => {
     const submit_button = page.locator(
       'button[type="submit"][form="form_create_webpage"]'
     );
-    await submit_button.click();
-
-    const response = await page.waitForResponse(
+    const response_promise = page.waitForResponse(
       (response) =>
         response.url().includes("/api/webpage") &&
         response.request().method() === "POST"
     );
+    await submit_button.click();
+    const response = await response_promise;
 
     expect(response.status()).toBe(201);
 
@@ -95,13 +95,13 @@ test.describe("Home Page", () => {
     const submit_button = page.locator(
       'button[type="submit"][form="form_create_webpage"]'
     );
-    await submit_button.click();
-
-    const response = await page.waitForResponse(
+    const response_promise = page.waitForResponse(
       (response) =>
         response.url().includes("/api/webpage") &&
         response.request().method() === "POST"
     );
+    await submit_button.click();
+    const response = await response_promise;
 
     expect(response.status()).toBe(201);
 
@@ -141,13 +141,13 @@ test.describe("Home Page", () => {
     const submit_button = page.locator(
       'button[type="submit"][form="form_create_webpage"]'
     );
-    await submit_button.click();
-
-    const response = await page.waitForResponse(
+    const response_promise = page.waitForResponse(
       (response) =>
         response.url().includes("/api/webpage") &&
         response.request().method() === "POST"
     );
+    await submit_button.click();
+    const response = await response_promise;
 
     expect(response.status()).toBe(201);
 

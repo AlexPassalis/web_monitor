@@ -104,10 +104,11 @@ test.describe("Auth Page", () => {
 
     await page.fill("#input_username", "nonexistent");
     await page.fill("#input_password", "wrongpassword123");
-    await page.click("#button_submit");
-    await page.waitForResponse((response) =>
+    const response_promise = page.waitForResponse((response) =>
       response.url().includes("/api/login")
     );
+    await page.click("#button_submit");
+    await response_promise;
 
     await expect(page.locator("form")).toContainText(
       "Invalid credentials, failed to login. Try again."
@@ -130,10 +131,11 @@ test.describe("Auth Page", () => {
     await page.goto("/auth");
     await page.fill("#input_username", username);
     await page.fill("#input_password", password);
-    await page.click("#button_submit");
-    await page.waitForResponse((response) =>
+    const response_promise = page.waitForResponse((response) =>
       response.url().includes("/api/signup")
     );
+    await page.click("#button_submit");
+    await response_promise;
 
     await expect(page.locator("form")).toContainText(
       "A user with that username already exists. Login instead."

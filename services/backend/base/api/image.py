@@ -82,8 +82,10 @@ def image_get(
             output_buffer = io.BytesIO()
             save_format, content_type = get_format_config(output_format)
 
-            if save_format in ['WEBP', 'AVIF']:
+            if save_format == 'WEBP':
                 image.save(output_buffer, format=save_format, quality=quality, method=6)
+            elif save_format == 'AVIF':
+                image.save(output_buffer, format=save_format, quality=quality)
             elif save_format == 'JPEG':
                 if image.mode in ('RGBA', 'LA', 'P'):
                     image = image.convert('RGB')
