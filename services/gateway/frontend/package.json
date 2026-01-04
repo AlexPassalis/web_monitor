@@ -13,7 +13,7 @@
     "openapi": "NODE_TLS_REJECT_UNAUTHORIZED=0 npx openapi-typescript https://localhost/api/openapi.json -o ./src/lib/openapi/schema.d.ts",
     "dev": "bun --hot src/index.ts",
     "test": "bunx playwright test",
-    "build": "bun run build.ts && sed 's|src=\"./main.tsx\"|src=\"./main.js\"|' src/index.html > dist/index.html"
+    "build": "bun run build.ts && sed 's|src=\"./main.tsx\"|src=\"./main.js\"|' src/index.html | sed 's|<title>|<link rel=\"stylesheet\" href=\"./main.css\"></link>\\n    <title>|' > dist/index.html"
   },
   "dependencies": {
     "@mantine/carousel": "~8.3.10",
