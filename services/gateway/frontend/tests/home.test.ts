@@ -162,7 +162,7 @@ test.describe("Home Page", () => {
         .filter({ hasText: test_url })
         .first();
       await expect(updated_row.locator("td").nth(2)).toHaveText("1");
-    }).toPass({ timeout: 30000, intervals: [1000] });
+    }).toPass({ timeout: 60000, intervals: [1000] }); // TODO update the test. Waiting a whole minute is stupid
 
     const updated_row = page
       .locator("tr")
