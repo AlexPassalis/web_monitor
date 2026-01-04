@@ -40,7 +40,7 @@ class Response:
         username: str
 
     class Error(Schema):
-        detail: str | dict | list
+        detail: list[str]
 
 
 @router_auth.post(
@@ -84,7 +84,7 @@ def login(
     user = django.contrib.auth.authenticate(request, username=data.username, password=data.password)
 
     if user is None:
-        return 401, Response.Error(detail='Invalid username or password')
+        return 401, Response.Error(detail=['Invalid username or password'])
 
     django.contrib.auth.login(request, user)
     return 200, Response.Login(message='Login successful')

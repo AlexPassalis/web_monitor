@@ -17,7 +17,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 
-from config.utils import get_browser
+from config.utils import get_browser, with_connection_cleanup
 
 logger = logging.getLogger(__name__)
 
@@ -211,18 +211,26 @@ class WebpageScreenshot(models.Model):
         """
         Take screenshot of webpage and save if changed
         """
-        webpage = await asyncio.to_thread(Webpage.objects.get, id=webpage_id)
+        try:
+            webpage = await asyncio.to_thread(
+                with_connection_cleanup(Webpage.objects.get), id=webpage_id
+            )
+        except Webpage.DoesNotExist:
+            logger.info('Webpage %d was deleted before screenshot could be saved', webpage_id)
+            return
 
         result = await WebpageScreenshot.take_screenshot(url=webpage.url)
         if result is None:
             return
 
-        latest_screenshot = await asyncio.to_thread(webpage.get_latest_screenshot)
+        latest_screenshot = await asyncio.to_thread(
+            with_connection_cleanup(webpage.get_latest_screenshot),
+        )
         if latest_screenshot and latest_screenshot.perceptual_hash == result.perceptual_hash:
             return
 
         webpagescreenshot = await asyncio.to_thread(
-            WebpageScreenshot.objects.create,
+            with_connection_cleanup(WebpageScreenshot.objects.create),
             webpage_id=webpage.id,
             perceptual_hash=result.perceptual_hash,
         )
@@ -236,11 +244,11 @@ class WebpageScreenshot(models.Model):
                 result.screenshot,
                 file_path,
             )
+            logger.info('New screenshot saved for webpage with url: %s', webpage.url)
         except Exception:
-            await asyncio.to_thread(webpagescreenshot.delete)
+            logger.error('New screenshot failed to be saved for webpage with url: %s', webpage.url)
+            await asyncio.to_thread(with_connection_cleanup(webpagescreenshot.delete))
             raise
-
-        logger.info('New screenshot saved for webpage with url: %s', webpage.url)
 
     @staticmethod
     async def take_screenshot(url: str) -> ScreenshotResult | None:

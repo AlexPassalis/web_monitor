@@ -59,7 +59,8 @@ def test_run_every_minute_creates_screenshot_when_missing(get_user, get_webpage)
     file_path = f'webpage/{get_webpage.id}/{files[0]}'
     assert django.core.files.storage.default_storage.exists(file_path)
 
-    django.core.files.storage.default_storage.delete(file_path)
+    for file in files:
+        django.core.files.storage.default_storage.delete(f'webpage/{get_webpage.id}/{file}')
 
 
 @pytest.mark.django_db(transaction=True)

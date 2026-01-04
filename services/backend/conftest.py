@@ -119,10 +119,10 @@ def reset_browser_state():
     """
     from config import utils
 
-    utils.browser_data = None
+    utils.browser_data.clear()
     utils.async_locks.clear()
     yield
-    utils.browser_data = None
+    utils.browser_data.clear()
     utils.async_locks.clear()
 
 

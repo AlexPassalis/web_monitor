@@ -163,9 +163,7 @@ export interface components {
         /** Error */
         Error: {
             /** Detail */
-            detail: string | {
-                [key: string]: unknown;
-            } | unknown[];
+            detail: string[];
         };
         /** Login */
         Login: {

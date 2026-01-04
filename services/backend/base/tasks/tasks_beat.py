@@ -26,10 +26,14 @@ def run_every_minute() -> int:
         return 0
 
     async def run_all():
+        semaphore = asyncio.Semaphore(10)
+
+        async def limited_save(webpage_id: int):
+            async with semaphore:
+                return await WebpageScreenshot.save_screenshot(webpage_id)
+
         try:
-            tasks = []
-            for webpage_id in webpage_ids:
-                tasks.append(WebpageScreenshot.save_screenshot(webpage_id))
+            tasks = [limited_save(webpage_id) for webpage_id in webpage_ids]
             return await asyncio.wait_for(
                 asyncio.gather(*tasks, return_exceptions=True),
                 timeout=50,

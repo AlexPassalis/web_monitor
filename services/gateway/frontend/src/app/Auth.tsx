@@ -66,7 +66,7 @@ export default function Auth() {
 
           try {
             if (isLogin) {
-              const { error: err } = await fetch.POST("/api/login", {
+              const { error: err, response } = await fetch.POST("/api/login", {
                 body: {
                   username,
                   password,
@@ -74,11 +74,22 @@ export default function Auth() {
               })
 
               if (err) {
-                console.error(err) // TODO better error handling
-                navigate("/error")
+                if (response.status === 401) {
+                  form.setFieldValue("password", "")
+                  form.setErrors({
+                    username: " ",
+                    password:
+                      "Invalid credentials, failed to login. Try again.",
+                  })
+
+                  return
+                } else {
+                  console.error(err) // TODO better error handling
+                  navigate("/error")
+                }
               }
             } else {
-              const { error: err } = await fetch.POST("/api/signup", {
+              const { error: err, response } = await fetch.POST("/api/signup", {
                 body: {
                   username,
                   password,
@@ -86,8 +97,24 @@ export default function Auth() {
               })
 
               if (err) {
-                console.error(err) // TODO better error handling
-                navigate("/error")
+                if (
+                  response.status === 400 &&
+                  err.detail.includes(
+                    "A user with that username already exists."
+                  )
+                ) {
+                  form.setFieldValue("password", "")
+                  form.setErrors({
+                    username: " ",
+                    password:
+                      "A user with that username already exists. Login instead.",
+                  })
+
+                  return
+                } else {
+                  console.error(err) // TODO better error handling
+                  navigate("/error")
+                }
               }
             }
 
@@ -101,6 +128,7 @@ export default function Auth() {
         style={{ borderColor: "var(--mantine-color-gray-4)" }}
       >
         <TextInput
+          id="input_username"
           key={form.key("username")}
           label="Username"
           placeholder="Your username"
@@ -108,13 +136,14 @@ export default function Auth() {
           {...form.getInputProps("username")}
         />
         <PasswordInput
+          id="input_password"
           key={form.key("password")}
           label="Password"
           placeholder="********"
           mb="lg"
           {...form.getInputProps("password")}
         />
-        <Button type="submit" mb="sm">
+        <Button id="button_submit" type="submit" mb="sm">
           {isLogin ? "Log In" : "Sign Up"}
         </Button>
         <div className="mt-2 text-sm text-right">
@@ -122,6 +151,7 @@ export default function Auth() {
             {isLogin ? "Don't have an account?" : "Already have an account?"}
           </span>
           <Button
+            id="button_toggle_mode"
             type="button"
             onClick={() => setIsLogin((prev) => !prev)}
             variant="light"
