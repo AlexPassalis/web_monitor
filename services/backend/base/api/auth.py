@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 from django.middleware.csrf import get_token
 from ninja import Router, Schema
+from ninja.security import django_auth
 
 from base.models import User
 
@@ -31,8 +32,15 @@ class Response:
     class Logout(Schema):
         message: Literal['Logout successful']
 
+    class Csrf(Schema):
+        csrfToken: str
+
+    class Me(Schema):
+        id: int
+        username: str
+
     class Error(Schema):
-        detail: str | dict | list
+        detail: list[str]
 
 
 @router_auth.post(
@@ -76,7 +84,7 @@ def login(
     user = django.contrib.auth.authenticate(request, username=data.username, password=data.password)
 
     if user is None:
-        return 401, Response.Error(detail='Invalid username or password')
+        return 401, Response.Error(detail=['Invalid username or password'])
 
     django.contrib.auth.login(request, user)
     return 200, Response.Login(message='Login successful')
@@ -96,9 +104,20 @@ def logout(request: HttpRequest) -> tuple[Literal[200], Response.Logout]:
     return 200, Response.Logout(message='Logout successful')
 
 
-@router_auth.get('/csrf', response={200: dict})
-def get_csrf(request: HttpRequest) -> tuple[Literal[200], dict]:
+@router_auth.get('/csrf', response={200: Response.Csrf})
+def get_csrf(request: HttpRequest) -> tuple[Literal[200], Response.Csrf]:
     """
     Get CSRF token
     """
-    return 200, {'csrfToken': get_token(request)}
+    return 200, Response.Csrf(csrfToken=get_token(request))
+
+
+@router_auth.get('/me', response={200: Response.Me}, auth=django_auth)
+def get_me(request: HttpRequest) -> tuple[Literal[200], Response.Me]:
+    """
+    Get current authenticated user information
+    """
+    assert request.user.is_authenticated
+    user = request.user
+
+    return 200, Response.Me(id=user.id, username=user.username)  # type: ignore[misc]

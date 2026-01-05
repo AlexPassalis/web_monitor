@@ -1,5 +1,3 @@
 certs/
-frontend/
 .dockerignore
 Dockerfile
-# nginx-development.conf TODO see if it possible to get the file in another way in dev

@@ -7,6 +7,7 @@ const hostname =
 
 export const fetch = createClient<paths>({
   baseUrl: `https://${hostname}`,
+  credentials: "include",
 })
 
 export type Fetch = typeof fetch;

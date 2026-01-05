@@ -1,9 +1,14 @@
+import io
+
 import boto3
 import pytest
 from django.conf import settings
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.backends.db import SessionStore
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from ninja.testing import TestClient
+from PIL import Image
 
 from base.api.auth import router_auth
 from base.models import User, Webpage
@@ -60,6 +65,65 @@ def setup_celery_eager_mode():
     """
     app.conf.task_always_eager = True
     app.conf.task_eager_propagates = True
+
+
+@pytest.fixture
+def create_test_image():
+    """
+    Helper fixture to create test images with various modes
+    """
+
+    def _create_image(mode='RGB', size=(800, 600), color=(255, 0, 0)):
+        """
+        Create a test image and return as bytes
+        """
+        image = Image.new(mode, size, color)
+        buffer = io.BytesIO()
+        if mode in ('RGBA', 'LA'):
+            image.save(buffer, format='PNG')
+        else:
+            image.save(buffer, format='PNG')
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    return _create_image
+
+
+@pytest.fixture
+def save_test_image_to_storage(create_test_image):
+    """
+    Helper fixture to save test images to storage and clean up after
+    """
+    saved_paths = []
+
+    def _save(path, mode='RGB', size=(800, 600), color=(255, 0, 0)):
+        """
+        Save a test image to storage and track for cleanup
+        """
+        image_bytes = create_test_image(mode=mode, size=size, color=color)
+        default_storage.save(path, ContentFile(image_bytes))
+        saved_paths.append(path)
+        return path
+
+    yield _save
+
+    for path in saved_paths:
+        if default_storage.exists(path):
+            default_storage.delete(path)
+
+
+@pytest.fixture
+def reset_browser_state():
+    """
+    Reset browser global state before and after each test
+    """
+    from config import utils
+
+    utils.browser_data.clear()
+    utils.async_locks.clear()
+    yield
+    utils.browser_data.clear()
+    utils.async_locks.clear()
 
 
 @pytest.fixture

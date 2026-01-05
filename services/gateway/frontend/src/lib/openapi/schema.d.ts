@@ -84,17 +84,65 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/add_webpage": {
+    "/api/me": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get Me
+         * @description Get current authenticated user information
+         */
+        get: operations["base_api_auth_get_me"];
         put?: never;
-        /** Add Webpage */
-        post: operations["base_api_add_webpage_add_webpage"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/webpage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get webpages being monitored by the user
+         * @description Get all webpages that the user is monitoring for the specified interval or all intervals
+         */
+        get: operations["base_api_webpage_webpage_get"];
+        put?: never;
+        /** Add a webpage to be monitored or update its interval */
+        post: operations["base_api_webpage_webpage_post"];
+        /**
+         * Remove a webpage from being monitored by the user
+         * @description Remove a webpage from user's monitoring list
+         */
+        delete: operations["base_api_webpage_webpage_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/image/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get optimized image
+         * @description Serves optimized images with format conversion, resizing, and quality adjustment
+         */
+        get: operations["base_api_image_image_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -115,9 +163,7 @@ export interface components {
         /** Error */
         Error: {
             /** Detail */
-            detail: string | {
-                [key: string]: unknown;
-            } | unknown[];
+            detail: string[];
         };
         /** Login */
         Login: {
@@ -134,6 +180,18 @@ export interface components {
              */
             message: "Logout successful";
         };
+        /** Csrf */
+        Csrf: {
+            /** Csrftoken */
+            csrfToken: string;
+        };
+        /** Me */
+        Me: {
+            /** Id */
+            id: number;
+            /** Username */
+            username: string;
+        };
         /** UnauthorizedResponse */
         UnauthorizedResponse: {
             /** Detail */
@@ -146,16 +204,22 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
-        /** TrackResponse */
-        TrackResponse: {
+        /** MonitorResponse */
+        MonitorResponse: {
+            /** Message */
+            message: string;
             /**
-             * Message
-             * @constant
+             * Interval
+             * @enum {string}
              */
-            message: "Webpage tracked successfully";
+            interval: "minute" | "hour" | "day";
+            /** Url */
+            url: string;
+            /** Id */
+            id: number;
         };
-        /** TrackRequest */
-        TrackRequest: {
+        /** MonitorRequest */
+        MonitorRequest: {
             /**
              * Url
              * Format: uri
@@ -166,6 +230,64 @@ export interface components {
              * @enum {string}
              */
             interval: "minute" | "hour" | "day";
+        };
+        /** WebpageGetQuery */
+        WebpageGetQuery: {
+            /** Interval */
+            interval?: ("minute" | "hour" | "day") | null;
+        };
+        /** WebpageDetail */
+        WebpageDetail: {
+            /**
+             * Interval
+             * @enum {string}
+             */
+            interval: "minute" | "hour" | "day";
+            /** Url */
+            url: string;
+            /** Id */
+            id: number;
+            /** Screenshots */
+            screenshots: string[];
+        };
+        /** DeleteResponse */
+        DeleteResponse: {
+            /**
+             * Message
+             * @constant
+             */
+            message: "Webpage monitoring removed successfully";
+            /** Id */
+            id: number;
+            /** Url */
+            url: string;
+        };
+        /** DeleteRequest */
+        DeleteRequest: {
+            /** Id */
+            id: number;
+        };
+        /** ImageQuery */
+        ImageQuery: {
+            /** W */
+            w?: number | null;
+            /** H */
+            h?: number | null;
+            /**
+             * Q
+             * @default 75
+             */
+            q: number | null;
+            /**
+             * F
+             * @default webp
+             */
+            f: ("webp" | "avif" | "jpeg" | "png") | null;
+        };
+        /** ErrorResponse */
+        ErrorResponse: {
+            /** Detail */
+            detail: string;
         };
     };
     responses: never;
@@ -277,14 +399,63 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["Csrf"];
                 };
             };
         };
     };
-    base_api_add_webpage_add_webpage: {
+    base_api_auth_get_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+        };
+    };
+    base_api_webpage_webpage_get: {
+        parameters: {
+            query?: {
+                interval?: ("minute" | "hour" | "day") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebpageDetail"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedResponse"];
+                };
+            };
+        };
+    };
+    base_api_webpage_webpage_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -293,17 +464,26 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TrackRequest"];
+                "application/json": components["schemas"]["MonitorRequest"];
             };
         };
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonitorResponse"];
+                };
+            };
             /** @description Created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TrackResponse"];
+                    "application/json": components["schemas"]["MonitorResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -322,6 +502,93 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    base_api_webpage_webpage_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+        };
+    };
+    base_api_image_image_get: {
+        parameters: {
+            query?: {
+                w?: number | null;
+                h?: number | null;
+                q?: number | null;
+                f?: ("webp" | "avif" | "jpeg" | "png") | null;
+            };
+            header?: never;
+            path: {
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

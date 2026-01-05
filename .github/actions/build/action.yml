@@ -1,5 +1,5 @@
 name: "build"
-description: "Build all the Docker compose containers"
+description: "Build all the Docker images"
 
 inputs:
   GIT_CRYPT_KEY:

@@ -16,7 +16,7 @@ def test_upload_screenshot_to_s3():
     Test that upload_screenshot_to_s3 saves the image to S3
     """
     image_bytes = (settings.BASE_DIR / 'image_test.jpg').read_bytes()
-    file_path = 'webpagescreenshots/test/test_image.jpg'
+    file_path = 'webpage/test/test_image.jpg'
 
     WebpageScreenshot.upload_screenshot_to_s3(image_bytes, file_path)
 
@@ -45,23 +45,19 @@ def test_save_screenshot(get_webpage):
     """
     Test that save_screenshot creates a screenshot record and uploads to S3
     """
-    WebpageScreenshot.save_screenshot(get_webpage.id)
+    async_to_sync(WebpageScreenshot.save_screenshot)(get_webpage.id)
 
     webpagescreenshot = WebpageScreenshot.objects.get(webpage=get_webpage)
     assert webpagescreenshot.perceptual_hash is not None
 
-    files = django.core.files.storage.default_storage.listdir(
-        f'webpagescreenshots/{get_webpage.id}'
-    )[1]
+    files = django.core.files.storage.default_storage.listdir(f'webpage/{get_webpage.id}')[1]
     assert len(files) == 1
 
-    file_path = f'webpagescreenshots/{get_webpage.id}/{files[0]}'
+    file_path = f'webpage/{get_webpage.id}/{files[0]}'
     assert django.core.files.storage.default_storage.exists(file_path)
 
     for file in files:
-        django.core.files.storage.default_storage.delete(
-            f'webpagescreenshots/{get_webpage.id}/{file}'
-        )
+        django.core.files.storage.default_storage.delete(f'webpage/{get_webpage.id}/{file}')
 
 
 @pytest.mark.django_db(transaction=True)
@@ -129,7 +125,7 @@ def test_take_screenshot_timeout_error(mock_get_browser):
     Test that take_screenshot returns None when page.goto times out
     """
     mock_page = AsyncMock()
-    mock_page.goto.side_effect = playwright.async_api.TimeoutError('Timeout 30000ms exceeded')
+    mock_page.goto.side_effect = playwright.async_api.TimeoutError('Timeout 10000ms exceeded')
 
     mock_context = AsyncMock()
     mock_context.new_page.return_value = mock_page
@@ -195,3 +191,36 @@ def test_take_screenshot_unexpected_error(mock_get_browser):
     mock_page.goto.assert_called_once()
     mock_page.close.assert_called_once()
     mock_context.close.assert_called_once()
+
+
+@pytest.mark.django_db(transaction=True)
+@patch('base.models.WebpageScreenshot.take_screenshot')
+def test_save_screenshot_aborts_when_take_screenshot_fails(mock_take_screenshot, get_webpage):
+    """
+    Test that save_screenshot aborts early when take_screenshot returns None
+    """
+    mock_take_screenshot.return_value = None
+
+    async_to_sync(WebpageScreenshot.save_screenshot)(get_webpage.id)
+
+    assert not WebpageScreenshot.objects.filter(webpage=get_webpage).exists()
+
+
+@pytest.mark.django_db(transaction=True)
+@patch('base.models.WebpageScreenshot.take_screenshot')
+@patch('base.models.WebpageScreenshot.upload_screenshot_to_s3')
+def test_save_screenshot_cleanup_on_s3_upload_failure(
+    mock_upload, mock_take_screenshot, get_webpage
+):
+    """
+    Test that DB record is deleted if S3 upload fails
+    """
+    mock_take_screenshot.return_value = MagicMock(
+        screenshot=b'fake_image_data', perceptual_hash='abc123'
+    )
+    mock_upload.side_effect = Exception('S3 upload failed')
+
+    with pytest.raises(Exception, match='S3 upload failed'):
+        async_to_sync(WebpageScreenshot.save_screenshot)(get_webpage.id)
+
+    assert not WebpageScreenshot.objects.filter(webpage=get_webpage).exists()

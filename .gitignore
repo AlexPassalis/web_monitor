@@ -11,9 +11,11 @@ celerybeat-schedule
 celerybeat-schedule-shm
 celerybeat-schedule-wal
 htmlcov/
+staticfiles/
 coverage.xml
 .coverage
 
 # services/gateway/frontend
+dist/
 node_modules/
 services/gateway/frontend/tests/results/

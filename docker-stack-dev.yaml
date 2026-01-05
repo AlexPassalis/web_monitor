@@ -1,0 +1,236 @@
+networks:
+  network_web_monitor:
+    external: true
+
+volumes:
+  postgres:
+  valkey:
+  minio:
+
+services:
+  dozzle:
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: amir20/dozzle:master
+    networks:
+      - network_web_monitor
+    environment:
+      - DOZZLE_NO_ANALYTICS=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "8080:8080"
+    healthcheck:
+      start_period: 10s
+      start_interval: 1s
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+
+  db:
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: web_monitor-db
+    env_file:
+      - ./services/db/.env
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - network_web_monitor
+    healthcheck:
+      start_period: 10s
+      start_interval: 1s
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} && PGPASSWORD=$${POSTGRES_PASSWORD} psql -U $${POSTGRES_USER} -d $${POSTGRES_DB} -c 'SELECT 1'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+
+  pgweb:
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: sosedoff/pgweb:latest
+    networks:
+      - network_web_monitor
+    env_file:
+      - ./services/db/.env
+    entrypoint: ["/bin/sh"]
+    command:
+      - -c
+      - 'pgweb --url "postgres://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@db:5432/$${POSTGRES_DB}?sslmode=disable" --bind 0.0.0.0 --listen 8081'
+    ports:
+      - "8081:8081"
+    healthcheck:
+      start_period: 10s
+      start_interval: 1s
+      test: ["CMD", "nc", "-vz", "127.0.0.1", "8081"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+
+  cache:
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: web_monitor-cache
+    volumes:
+      - valkey:/data
+    networks:
+      - network_web_monitor
+    healthcheck:
+      start_period: 10s
+      start_interval: 1s
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+
+  s3:
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    env_file:
+      - ./services/s3/.env
+    volumes:
+      - minio:/data
+    networks:
+      - network_web_monitor
+    ports:
+      - "9001:9001"
+    healthcheck:
+      start_period: 10s
+      start_interval: 1s
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+
+  backend:
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: web_monitor-backend
+    user: ${PYTHON_USER:-appuser}
+    env_file:
+      - ./services/backend/.env
+    volumes:
+      - ./services/backend:/app
+      - /app/.venv
+    networks:
+      - network_web_monitor
+    healthcheck:
+      start_period: 10s
+      start_interval: 1s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+
+  celery_beat:
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: web_monitor-backend
+    user: ${PYTHON_USER:-appuser}
+    command: uv run watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config beat --loglevel=info
+    env_file:
+      - ./services/backend/.env
+    volumes:
+      - ./services/backend:/app
+      - /app/.venv
+    networks:
+      - network_web_monitor
+    healthcheck:
+      start_period: 10s
+      start_interval: 1s
+      test: ["CMD-SHELL", "test -f celerybeat-schedule || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+
+  celery_worker:
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    image: web_monitor-backend
+    user: ${PYTHON_USER:-appuser}
+    command: uv run watchmedo auto-restart --directory=/app --pattern='*.py' --recursive -- celery -A config worker -Q high_priority,medium_priority,low_priority --loglevel=info -E
+    env_file:
+      - ./services/backend/.env
+    volumes:
+      - ./services/backend:/app
+      - /app/.venv
+    networks:
+      - network_web_monitor
+    healthcheck:
+      start_period: 10s
+      start_interval: 1s
+      test:
+        [
+          "CMD-SHELL",
+          "uv run celery -A config inspect ping -d celery@$${HOSTNAME}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+
+  gateway:
+    deploy:
+      restart_policy:
+        condition: any
+      update_config:
+        order: stop-first
+        failure_action: rollback
+    image: web_monitor-gateway
+    volumes:
+      - ./services/gateway/certs:/etc/nginx/certs:ro
+    networks:
+      - network_web_monitor
+    ports:
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      start_period: 10s
+      start_interval: 1s
+      test:
+        ["CMD-SHELL", "curl -kf https://localhost/health | grep ok || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 2

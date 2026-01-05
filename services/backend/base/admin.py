@@ -1,26 +1,31 @@
 from django.contrib import admin
 
-from base.models import Webpage, WebpageScreenshot
+from base.models import Webpage, WebpageMonitoring, WebpageScreenshot
+
+
+class WebpageMonitoringInline(admin.TabularInline):
+    model = WebpageMonitoring
+    extra = 1
 
 
 @admin.register(Webpage)
 class WebpageAdmin(admin.ModelAdmin):
     list_display = ('url', 'minute_count', 'hour_count', 'day_count')
     search_fields = ('url',)
-    filter_horizontal = ('minute', 'hour', 'day')
-    fields = ('url', 'minute', 'hour', 'day')
+    fields = ('url',)
+    inlines = [WebpageMonitoringInline]  # noqa: RUF012
 
     @admin.display(description='minute Users')
     def minute_count(self, obj: Webpage) -> int:
-        return obj.minute.count()
+        return obj.monitorings.filter(interval='minute').count()  # type: ignore[attr-defined]
 
     @admin.display(description='hour Users')
     def hour_count(self, obj: Webpage) -> int:
-        return obj.hour.count()
+        return obj.monitorings.filter(interval='hour').count()  # type: ignore[attr-defined]
 
     @admin.display(description='day Users')
     def day_count(self, obj: Webpage) -> int:
-        return obj.day.count()
+        return obj.monitorings.filter(interval='day').count()  # type: ignore[attr-defined]
 
 
 @admin.register(WebpageScreenshot)

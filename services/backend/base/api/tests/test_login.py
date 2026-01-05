@@ -43,7 +43,7 @@ def test_login_invalid_credentials(auth_client, get_user, username, password):
     response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 401
-    assert response.json() == {'detail': 'Invalid username or password'}
+    assert response.json() == {'detail': ['Invalid username or password']}
 
 
 @pytest.mark.django_db
@@ -79,7 +79,7 @@ def test_login_non_existent_user(auth_client):
     response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 401
-    assert response.json()['detail'] == 'Invalid username or password'
+    assert response.json()['detail'] == ['Invalid username or password']
 
 
 @pytest.mark.django_db
@@ -115,4 +115,4 @@ def test_login_inactive_user(auth_client):
     response = auth_client.request(method=method, path=path, json=json_body)
 
     assert response.status_code == 401
-    assert response.json()['detail'] == 'Invalid username or password'
+    assert response.json()['detail'] == ['Invalid username or password']

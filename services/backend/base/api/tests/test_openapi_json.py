@@ -21,4 +21,4 @@ def test_openapi_json():
 
     assert data['info']['title'] == 'Backend API Service'
     assert data['info']['version'] == '0.0.1'
-    assert data['info']['description'] == 'API for tracking webpage changes'
+    assert data['info']['description'] == 'API for monitoring webpage changes'

@@ -1,0 +1,153 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build_and_push:
+    name: build_and_push
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository into GitHub Actions runner (ubuntu VM)
+        uses: actions/checkout@v6
+
+      - name: Decrypt git-crypted files
+        uses: sliteteam/github-action-git-crypt-unlock@1.3.0
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+
+      - name: Set up Docker Buildx (build tool)
+        uses: docker/setup-buildx-action@v3
+
+      - name: Convert repository owner name to lowercase
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "OWNER=$OWNER" >> $GITHUB_ENV
+
+      - name: Define image URLs
+        run: |
+          echo "IMAGE_DB=ghcr.io/$OWNER/web_monitor-db" >> $GITHUB_ENV
+          echo "IMAGE_CACHE=ghcr.io/$OWNER/web_monitor-cache" >> $GITHUB_ENV
+          echo "IMAGE_BACKEND=ghcr.io/$OWNER/web_monitor-backend" >> $GITHUB_ENV
+          echo "IMAGE_GATEWAY=ghcr.io/$OWNER/web_monitor-gateway" >> $GITHUB_ENV
+
+      - name: image-db (build and tag)
+        run: |
+          docker build \
+          -t $IMAGE_DB:latest \
+          -f ./services/db/Dockerfile \
+          ./services/db
+
+          docker tag \
+          $IMAGE_DB:latest \
+          $IMAGE_DB:${{ github.sha }}
+
+      - name: image-cache (build and tag)
+        run: |
+          docker build \
+          -t $IMAGE_CACHE:latest \
+          -f ./services/cache/Dockerfile \
+          ./services/cache
+
+          docker tag \
+          $IMAGE_CACHE:latest \
+          $IMAGE_CACHE:${{ github.sha }}
+
+      - name: image-backend (build and tag)
+        run: |
+          docker build \
+          -t $IMAGE_BACKEND:latest \
+          -f ./services/backend/Dockerfile \
+          ./services/backend
+
+          docker tag \
+          $IMAGE_BACKEND:latest \
+          $IMAGE_BACKEND:${{ github.sha }}
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - name: Install and build frontend
+        run: |
+          make install_frontend
+          make build_frontend
+      - name: image-gateway (build and tag)
+        run: |
+          docker build \
+          -t $IMAGE_GATEWAY:latest \
+          -f ./services/gateway/Dockerfile \
+          ./services/gateway
+
+          docker tag \
+          $IMAGE_GATEWAY:latest \
+          $IMAGE_GATEWAY:${{ github.sha }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Push images to GHCR
+        run: |
+          docker push $IMAGE_DB:latest
+          docker push $IMAGE_DB:${{ github.sha }}
+
+          docker push $IMAGE_CACHE:latest
+          docker push $IMAGE_CACHE:${{ github.sha }}
+
+          docker push $IMAGE_BACKEND:latest
+          docker push $IMAGE_BACKEND:${{ github.sha }}
+
+          docker push $IMAGE_GATEWAY:latest
+          docker push $IMAGE_GATEWAY:${{ github.sha }}
+
+  deploy:
+    name: deploy
+    needs: build_and_push
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository into GitHub Actions runner (ubuntu VM)
+        uses: actions/checkout@v6
+
+      - name: Decrypt git-crypted files
+        uses: sliteteam/github-action-git-crypt-unlock@1.3.0
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+
+      - name: Copy deployment files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          username: ${{ secrets.VPS_USER }}
+          host: ${{ secrets.VPS_IP }}
+          passphrase: ${{ secrets.VPS_PASSPHRASE }}
+          source: "./bin/create_docker_network,./docker-stack.yaml,./services/db/.env,./services/s3/.env,./services/backend/.env,./services/gateway/certs"
+          target: "/home/${{ secrets.VPS_USER }}/web_monitor/"
+
+      - name: Docker stack deploy
+        uses: appleboy/ssh-action@v1.2.1
+        with:
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          username: ${{ secrets.VPS_USER }}
+          host: ${{ secrets.VPS_IP }}
+          passphrase: ${{ secrets.VPS_PASSPHRASE }}
+          script: |
+            cd /home/${{ secrets.VPS_USER }}/web_monitor
+            chmod +x ./bin/create_docker_network
+            ./bin/create_docker_network
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker stack deploy -c ./docker-stack.yaml --detach=false --resolve-image always --with-registry-auth web_monitor
+            docker system prune -af
+            docker logout ghcr.io
