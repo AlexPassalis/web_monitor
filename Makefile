@@ -86,6 +86,10 @@ test_coverage:
 show_git_crypt:
 	git-crypt status -e
 
+ssh:
+	@echo "==> Establishing SSH connection to remote server"
+	@bin/ssh
+
 # BACKEND
 install_backend:
 	@echo "==> Installing backend dependencies"
