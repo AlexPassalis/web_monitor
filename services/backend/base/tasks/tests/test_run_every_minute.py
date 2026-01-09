@@ -13,9 +13,9 @@ client = TestClient(router_webpage)
 
 
 @pytest.mark.django_db(transaction=True)
-def test_run_every_minute_no_change(get_user):
+def test_run_every_minute_no_update(get_user):
     """
-    Test that run_every_minute does not create duplicate screenshots when page hasn't changed
+    Test that run_every_minute does not create duplicate screenshots when page hasn't been updated
     """
     json_body = {'url': TestValues.url, 'interval': 'minute'}
 

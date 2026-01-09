@@ -60,7 +60,7 @@ class User(AbstractUser):
 
 class Webpage(models.Model):
     """
-    Represents a webpage that is being monitored for changes
+    Represents a webpage that is being monitored for updates
     """
 
     id = models.AutoField(primary_key=True)
@@ -209,7 +209,7 @@ class WebpageScreenshot(models.Model):
     @staticmethod
     async def save_screenshot(webpage_id: int) -> None:
         """
-        Take screenshot of webpage and save if changed
+        Take screenshot of webpage and save if updated
         """
         try:
             webpage = await asyncio.to_thread(

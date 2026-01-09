@@ -248,7 +248,7 @@ def test_resize_image_function(width, height, expected_size):
     assert resized.size == expected_size
 
 
-def test_resize_image_no_change_returns_same_instance():
+def test_resize_image_no_update_returns_same_instance():
     """
     Test that resize_image returns the same instance when no resize needed
     """
