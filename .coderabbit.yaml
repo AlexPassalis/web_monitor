@@ -1,18 +1,3 @@
 # https://docs.coderabbit.ai/reference/configuration#reference
 reviews:
-  auto_review:
-    enabled: true
-    drafts: false
-  profile: chill
-  high_level_summary: true
   high_level_summary_in_walkthrough: true
-  changed_files_summary: true
-  sequence_diagrams: true
-  estimate_code_review_effort: true
-  assess_linked_issues: true
-  related_issues: true
-  related_prs: true
-  suggested_labels: true
-
-chat:
-  auto_reply: true

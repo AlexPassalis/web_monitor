@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat *)",
+      "Bash(curl *)",
+      "Bash(gh pr view *)",
+      "Bash(docker ps *)",
+      "Bash(docker logs *)",
+      "WebFetch(domain:www.anthropic.com)"
+    ],
+    "deny": ["Bash(git add *)", "Bash(git commit *)", "Bash(git push *)"],
+    "ask": []
+  }
+}
