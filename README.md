@@ -102,16 +102,16 @@ A full-stack web application that monitors webpages for visual updates by period
 
 ### Frontend
 
-| Technology                                                 | Purpose                                  |
-| ---------------------------------------------------------- | ---------------------------------------- |
-| [**TypeScript**](https://www.typescriptlang.org/)          | Type-safe JavaScript                     |
-| [**React 19**](https://react.dev/)                         | UI framework                             |
-| [**React Router 7**](https://reactrouter.com/)             | Client-side routing                      |
-| [**Mantine 8**](https://mantine.dev/)                      | Component library                        |
-| [**Tailwind CSS 4**](https://tailwindcss.com/)             | Utility-first styling                    |
-| [**Zod**](https://zod.dev/)                                | Runtime validation                       |
-| [**Bun**](https://bun.sh/)                                 | JavaScript runtime and package manager   |
-| [**openapi-fetch**](https://openapi-ts.dev/openapi-fetch/) | Type-safe API client from OpenAPI schema |
+| Technology                                        | Purpose                                  |
+| ------------------------------------------------- | ---------------------------------------- |
+| [**TypeScript**](https://www.typescriptlang.org/) | Type-safe JavaScript                     |
+| [**React 19**](https://react.dev/)                | UI framework                             |
+| [**React Router 7**](https://reactrouter.com/)    | Client-side routing                      |
+| [**Mantine 8**](https://mantine.dev/)             | Component library                        |
+| [**Tailwind CSS 4**](https://tailwindcss.com/)    | Utility-first styling                    |
+| [**Zod**](https://zod.dev/)                       | Runtime validation                       |
+| [**Bun**](https://bun.sh/)                        | Dev server, bundler, and package manager |
+| [**openapi-fetch**](https://openapi-ts.dev/)      | Type-safe API client from OpenAPI schema |
 
 ## CI/CD Pipeline
 

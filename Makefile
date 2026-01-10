@@ -6,7 +6,7 @@ STACK_NAME = web_monitor
 FRONTEND_SERVICE_NAME = frontend
 BACKEND_SERVICE_NAME = backend
 
-.PHONY: default init start stop install lint check_type check fix test test_coverage show_git_crypt install_backend start_backend stop_backend lint_backend fix_backend check_type_backend test_backend test_backend_coverage makemigrations migrate check_missing_migrations create_superuser install_frontend start_frontend stop_frontend lint_frontend fix_frontend check_type_frontend test_frontend
+.PHONY: default init build build_no_cache start_prod start stop install lint check_type check fix test test_coverage show_git_crypt ssh install_backend start_backend stop_backend lint_backend fix_backend check_type_backend check_backend test_backend test_backend_coverage makemigrations migrate check_missing_migrations create_superuser install_frontend start_frontend stop_frontend lint_frontend fix_frontend check_type_frontend check_frontend test_frontend build_frontend
 
 default: start
 
@@ -118,6 +118,10 @@ check_type_backend:
 	@echo "==> Checking types inside \"${BACKEND_SERVICE_NAME}\" service"
 	@bin/dockerize_backend uv run mypy .
 
+check_backend:
+	@${MAKE} lint_backend
+	@${MAKE} check_type_backend
+
 test_backend:
 	@echo "==> Running tests inside \"${BACKEND_SERVICE_NAME}\" service"
 	@bin/dockerize_backend uv run pytest
@@ -168,6 +172,10 @@ fix_frontend:
 check_type_frontend:
 	@echo "==> Checking types in frontend on host"
 	@bin/in_frontend bun run check
+
+check_frontend:
+	@${MAKE} lint_frontend
+	@${MAKE} check_type_frontend
 
 test_frontend:
 	@echo "==> Running tests in frontend on host"
