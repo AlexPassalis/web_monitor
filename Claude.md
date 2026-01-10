@@ -1,5 +1,3 @@
-# CLAUDE.md
-
 ## Project Overview
 
 Web Monitor is a full-stack application that monitors webpages for visual changes. Users add URLs with configurable intervals, Celery workers take screenshots via Playwright, and perceptual hashing detects meaningful visual differences. Only changed screenshots are stored in S3.
@@ -7,17 +5,6 @@ Web Monitor is a full-stack application that monitors webpages for visual change
 Backend: Django + Django Ninja, Celery Beat + Celery, Playwright, PostgreSQL, MinIO (S3).
 
 Frontend: React SPA with TypeScript, Mantine, Tailwind. Bun dev server in development, nginx serves built files in production.
-
-## Commands
-
-- `make test_frontend`: Run frontend tests
-- `make test_backend`: Run backend tests
-- `make test`: Run all tests
-- `make check_frontend`: Run frontend linting and typechecking
-- `make check_backend`: Run backend linting and typechecking
-- `make check`: Run all checks
-
-Prefer running specific tests over full test suites when possible (e.g., `pytest -k test_name`).
 
 ## Code Style
 
@@ -48,3 +35,14 @@ def process_url(url: str) -> Screenshot:
 
     return screenshot
 ```
+
+## Commands
+
+- `make test_frontend`: Run frontend tests
+- `make test_backend`: Run backend tests
+- `make test`: Run all tests
+- `make check_frontend`: Run frontend linting and typechecking
+- `make check_backend`: Run backend linting and typechecking
+- `make check`: Run all checks
+
+Prefer running specific tests over full test suites when possible (e.g., `pytest -k test_name`).
